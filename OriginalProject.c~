@@ -1,0 +1,115 @@
+/*
+ * ProjectCAD.c
+ *
+ * Created: 10/03/2020 06:09:42 p. m.
+ * Author: diego
+ */
+
+#include <io.h>
+  DDRD = 0x0F; //DipSwitch entrada
+  PORTD=0xF0; //Pull up en bit 7 a 4 
+  unsigned char C1; //Numero de pasos autorizados
+  unsigned char acceso = 1; // Bandera de acceso 
+ 
+                   
+
+
+void main(void)
+{
+while (1)
+    {
+    
+//    if(PIND.7 == 1 ){ //Giro a la derecha
+//        if(C1>0){           
+//          acceso=1;
+//          while(acceso){
+//            Tiempo=30; //30 segundos
+//            electroimanbloqueo=0;
+//            if(microswitch izquierdo || (Tiempo==0 ){
+//                Tiempo = 0;     
+//                electroimanbloqueo= 1
+//                C1= C1-1;
+//                O1 = 1;
+//                delay 500ms;
+//                O1 = 0;    
+//                acceso = 0; 
+//            }               
+//            Tiempo=Tiempo-1;
+//            
+//          } 
+//            
+//          
+//          }   
+//        
+//        }
+
+       if(PIND.7 == 1){ //Giro a la derecha
+        if(C1>0){           
+          acceso=5;
+          while(acceso){
+            Tiempo=30; //30 segundos
+            electroimanbloqueo=0;
+            if(microswitch izquierdo || (Tiempo==0 ){
+                Tiempo = 0;     
+                electroimanbloqueo= 1
+                C1= C1-1;
+                O1 = 1;
+                delay 500ms;
+                O1 = 0;    
+                acceso = 0; 
+            }               
+            Tiempo=Tiempo-1;
+            
+          } 
+            
+          
+          }   
+        
+        }
+        
+    }
+    
+}
+
+// If w
+
+/* If microswreposo = 1 
+        martillo =0
+
+   if microswderecha = 1 
+        if paso autorizado = 1
+           martillo = 0;
+        else
+           interrupción prende martillo ( martillo = 1) 
+        
+          
+           
+   while (entrada = 1){ 
+           if(pulso continuo){
+           
+                   
+           
+                    while (señal de paso){
+                            martillo=0;
+                   
+           
+           
+          }
+          else  {
+          
+                  if (multipulso){ 
+                   
+                     if(señal de paso){
+                        numpaso++;
+                     }
+                   }  
+                   else{
+                    if(señal de paso){
+                        numpaso=1;        
+                    }
+                   }
+          
+          
+          }
+          
+    }
