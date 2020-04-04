@@ -10,13 +10,12 @@ Register Allocation
 Variable                                                                          Register  Size
 ------------------------------------------------------------------------------------------------
 numpasos                                                                          R3,R4        2
-prevS                                                                             R5,R6        2
-prev                                                                              R7,R8        2
-curre                                                                             R9,R10       2
-entry                                                                             R11,R12      2
-i                                                                                 R13,R14      2
+prev                                                                              R5,R6        2
+curre                                                                             R7,R8        2
+entry                                                                             R9,R10       2
+i                                                                                 R11,R12      2
 
 FLASH Allocation [words]
 Function                                                                          Address   Size
 ------------------------------------------------------------------------------------------------
-main                                                                              0x0006D    234
+main                                                                              0x0006C    238

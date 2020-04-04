@@ -8,8 +8,9 @@
 #include <io.h>
 #include <delay.h>
 
+
+
 unsigned int numpasos = 0;
-unsigned int prevS    = 0;
 unsigned int prev     = 0;
 unsigned int curre    = 0;
 unsigned int entry    = 0;
@@ -26,48 +27,56 @@ unsigned int i = 0;
 //PINC.4 Microswitch Giro Izquierdo
 
 //SALIDAS
-//PINC.1 Bloqueo electroimán (Salida para solenoide)
+//PINC.5 Bloqueo electroimán (Salida para solenoide)
+
+
 
 void main(void)
 {
 
 DDRD  = 0x0B; //DipSwitch entrada y push 
 PORTD = 0xF4; //Pull up para dipswitches y pushbutton
-DDRC  = 0x02; //Salida solenoide y microswitches entrada
+DDRC  = 0x20; //Salida solenoide y microswitches entrada
 PORTC = 0x1C; //Pull up en microswitches 
 
 while (1)
     {              
-       while (PIND.4 == 1){  // PASO DERECHO
-               while(PIND.5 == 0){//Pulso continuo no activo   
-                    if (PINC.2 != 1){//Microswitch reposo   
-                        if(PIND.6 == 1){//Bloqueo de salida activado o también el de entrada
-                              PORTC.1 = 1; //Activa martillo 
-                              delay_ms (5000);
-                              PORTC.1 = 0; //Desactiva martillo
+       while (PIND.4 == 0){  // PASO SENTIDO DERECHO
+        if (PINC.2 != 0){//Microswitch reposo //salio de reposo   
+                        if(PIND.6 == 0){//Bloqueo de salida activado o también el de entrada
+                              PORTC.5 = 1; //Activa martillo 
+                              delay_ms (200);
+                              PORTC.5 = 0; //Desactiva martillo
                         }   
-                        else{  
-                            if (PINC.3 == 1){//Microswitch giro derecho  
-                                if (prevS == 0){ //Switch previo, detecta que ya pasó  o no por PINC.4
-                                    while(PINC.3 == 1){//Mientras esté intentando entrar activa martillo  
-                                       PORTC.1 = 1; //Activa martillo 
-                                       delay_ms (5000);
-                                       PORTC.1 = 0; //Desactiva martillo
-                                    }
-                                }
-         
-                            }
-                            if(PINC.4 == 1){ //Microswitch giro izquierdo
-                                prevS  = 1;       
-                        }      
-                        PORTC.1 = 0; //Martillo desactivado
-                              
-                    }  
+                        else{
+                               while(PINC.3 == 0){//Mientras esté intentando entrar activa martillo  
+                                    PORTC.5 = 1; //Activa martillo 
+                                    delay_ms (200);
+                                    PORTC.5 = 0; //Desactiva martillo
+                               }
+                          
+                        }  
+                    }   
+               while(PIND.5 == 1){//Pulso continuo no activo   
+                    if (PINC.2 != 0){//Microswitch reposo salio de reposo   
+                        if(PIND.6 == 0){//Bloqueo de salida activado o también el de entrada
+                              PORTC.5 = 1; //Activa martillo 
+                              delay_ms (200);
+                              PORTC.5 = 0; //Desactiva martillo
+                        }   
+                        else{
+                               while(PINC.3 == 0){//Mientras esté intentando entrar activa martillo  
+                                    PORTC.5 = 1; //Activa martillo 
+                                    delay_ms (200);
+                                    PORTC.5 = 0; //Desactiva martillo
+                               }
+                          
+                        }  
+                    }   
+                     if (PIND.7 == 0){//MODO MULTIPULSO  
                        
-                     if (PIND.7 == 1){//MODO MULTIPULSO  
                        
-                       
-                         if(PIND.2 == 1){//Señal de paso
+                         if(PIND.2 == 0){//Señal de paso
                            numpasos++;
                            
                            //DEFINICION DE RELOJ a 5s 
@@ -75,7 +84,7 @@ while (1)
                            TCNT1H= 0xEC; //Contador 65536 -60653  inicia en 60653 para contar 4883 veces , .001024 segundos por cuenta
                            TCNT1L= 0xED; //Se pone 60653 dividido en los 8MSB para TCNT1H y los 8LSB para TCNT1L
                            do{ 
-                             if(PIND.2 == 1){ // Señal de paso
+                             if(PIND.2 == 0){ // Señal de paso
                                if(numpasos > 5){ 
                                   break;
                                }                
@@ -87,10 +96,12 @@ while (1)
                                 
                     
                              }       
-                           }while(TIFR0.TOV0==0); //Mientras la bandera de overflow no sea 1     
-                           
+                           }while(TIFR0.TOV0==0); //Mientras la bandera de overflow no sea 1
                            TCCR1B=0;       //Apagar timer
-                                 
+                            
+
+                           
+                          
                            for (i=0;i<numpasos;i++){ 
                                  TIFR1.TOV1=1;//Resetea la bandera de overflow
                                  TCCR1B= 0x05; //Enciende timer 1 en modo normal con prescalador CK/1024  
@@ -98,21 +109,21 @@ while (1)
                                  TCNT1L= 0xD9; //Se pone 55769 dividido en los 8MSB para TCNT1H y los 8LSB para TCNT1L
                                 //TIENE 10 s para pasar
                                 while(TIFR0.TOV0==0){//mientras la bandera de overflow no sea 1 
-                                    if(PINC.2 == 0 && PINC.4 == 1){
-                                       while(PINC.4 == 1){//Mientras esté intentando entrar activa martillo  
-                                            PORTC.1 = 1; //Activa martillo 
-                                            delay_ms (5000);
-                                            PORTC.1 = 0; //Desactiva martillo
+                                    if(PINC.2 == 1 && PINC.4 == 0){ // Para evitar que haga sentido opuesto
+                                       while(PINC.4 == 0){//Mientras esté intentando entrar activa martillo  
+                                            PORTC.5 = 1; //Activa martillo 
+                                            delay_ms (200);
+                                            PORTC.5 = 0; //Desactiva martillo
                                        }
                                     }   
                                     
-                                    if(PINC.3 == 1){
+                                    if(PINC.3 == 0){
                                         prev  = 1;
-                                        if(PINC.4 == 1)
+                                        if(PINC.4 == 0)
                                             curre = 1; 
                                     }   
                                     
-                                    if(prev == 1 && curre == 1 && PINC.2 == 1){ 
+                                    if(prev == 1 && curre == 1 && PINC.2 == 0){ 
                                        entry=1;
                                        break;
                                     }              
@@ -126,7 +137,7 @@ while (1)
                          } 
                        }  
                     else{
-                           if(PIND.2==1){ //Señal de paso
+                           if(PIND.2==0){ //Señal de paso
                                 TIFR1.TOV1=1;//Resetea la bandera de overflow
                                 TCCR1B= 0x05; //Enciende timer 1 en modo normal con prescalador CK/1024  
                                 TCNT1H= 0xD9; //Contador 65536 - 55769 inicia en 55769 para contar 9767 veces , .001024 segundos por cuenta
@@ -134,74 +145,79 @@ while (1)
                                 //TIENE 10 s para pasar
                                 
                                 while(TIFR0.TOV0==0){//mientras la bandera de overflow no sea 1 
-                                    if(PINC.2 == 0 && PINC.4 == 1){
-                                       while(PINC.4 == 1){//Mientras esté intentando entrar activa martillo  
-                                            PORTC.1 = 1; //Activa martillo 
-                                            delay_ms (5000);
-                                            PORTC.1 = 0; //Desactiva martillo
+                                    if(PINC.2 == 1 && PINC.4 == 0){
+                                       while(PINC.4 == 0){//Mientras esté intentando entrar activa martillo  
+                                            PORTC.5 = 1; //Activa martillo 
+                                            delay_ms (200);
+                                            PORTC.5 = 0; //Desactiva martillo
                                        }
                                     }   
                                     
-                                    if(PINC.3 == 1){
+                                    if(PINC.3 == 0){
                                         prev  = 1;
-                                        if(PINC.4 == 1)
+                                        if(PINC.4 == 0)
                                             curre = 1; 
                                     }   
                                     
-                                    if(prev == 1 && curre == 1 && PINC.2 == 1){ 
+                                    if(prev == 1 && curre == 1 && PINC.2 == 0){ 
                                        break;
                                     }              
                                 }
                                 TCCR1B=0;       //Apagar timer
                            } 
-                           numpasos=0;
                          } 
-                    }
                
                }          
-              while (PIND.2==1){ //Mientras señal de pulso activada
-                    PORTC.1 = 0; //Martillo desactivado
+              while (PIND.2==0){ //Mientras señal de pulso activada
+                    PORTC.5 = 0; //Martillo desactivado
               }
               
         }   
 
-       while (PIND.4 == 0){ //PASO SENTIDO IZQUIERDO
-               while(PIND.5 ==0){ //Pulso continuo no activado   
-                    if (PINC.2 != 1){ //Microswitch no en reposo 
-                        if(PIND.6 == 1){ // Bloqueo sentido de salida
-                            PORTC.1 = 1; //Activa martillo 
-                            delay_ms (5000);
-                            PORTC.1 = 0; //Desactiva martillo
+       while (PIND.4 == 1){ //PASO SENTIDO IZQUIERDO
+        if (PINC.2 != 0){//Microswitch reposo //salio de reposo   
+                        if(PIND.6 == 0){//Bloqueo de salida activado o también el de entrada
+                              PORTC.5 = 1; //Activa martillo 
+                              delay_ms (200);
+                              PORTC.5 = 0; //Desactiva martillo
                         }   
-                        else{  
-                            if (PINC.4 == 1){ // Microswitch giro izq. 
-                                if (prevS == 0){
-                                    while(PINC.4 == 1){
-                                            PORTC.1 = 1; //Activa martillo 
-                                            delay_ms (5000);
-                                            PORTC.1 = 0; //Desactiva martillo
-                                    }
-                                }
-         
-                            }
-                            if(PINC.3 == 1){ //Microswitch giro derecho
-                                prevS  = 1;       
-                        }      
-                        PORTC.1 = 0; //Martillo  
-                              
-                    }
+                        else{
+                               while(PINC.4 == 0){//Mientras esté intentando entrar activa martillo  
+                                    PORTC.5 = 1; //Activa martillo 
+                                    delay_ms (200);
+                                    PORTC.5 = 0; //Desactiva martillo
+                               }
+                          
+                        }  
+                    }   
+               while(PIND.5 ==1){ //Pulso continuo no activado   
+                      if (PINC.2 != 0){//Microswitch reposo //salio de reposo   
+                        if(PIND.6 == 0){//Bloqueo de salida activado o también el de entrada
+                              PORTC.5 = 1; //Activa martillo 
+                              delay_ms (200);
+                              PORTC.5 = 0; //Desactiva martillo
+                        }   
+                        else{
+                               while(PINC.4 == 0){//Mientras esté intentando entrar activa martillo  
+                                    PORTC.5 = 1; //Activa martillo 
+                                    delay_ms (200);
+                                    PORTC.5 = 0; //Desactiva martillo
+                               }
+                          
+                        }  
+                    }   
                        
-                     if (PIND.7 == 1){ //MODO MULTIPULSO AUTORIZADO 
+                     if (PIND.7 == 0){ //MODO MULTIPULSO AUTORIZADO 
                        
                        
-                         if(PIND.2 == 1){//Señal de pulso
+                         if(PIND.2 == 0){//Señal de pulso
                            numpasos++; 
                            //DEFINICION DE RELOJ a 5s 
                            TCCR1B= 0x05; //Enciende timer 1 en modo normal con prescalador CK/1024  
                            TCNT1H= 0xEC; //Contador 65536 -60653  inicia en 60653 para contar 4883 veces , .001024 segundos por cuenta
                            TCNT1L= 0xED; //Se pone 60653 dividido en los 8MSB para TCNT1H y los 8LSB para TCNT1L
                            do{ 
-                             if(PIND.2 == 1){ // señal de paso
+                             if(PIND.2 == 0){ // señal de paso
                                if(numpasos > 5){ 
                                   break;
                                }                
@@ -223,21 +239,21 @@ while (1)
                                 //TIENE 10 s para pasar
                                 
                                 while(TIFR0.TOV0==0){//mientras la bandera de overflow no sea 1  
-                                    if(PINC.2 == 0 && PINC.3 == 1){
-                                       while(PINC.3 == 1){//Mientras esté intentando entrar activa martillo  
-                                            PORTC.1 = 1; //Activa martillo 
+                                    if(PINC.2 == 1 && PINC.3 == 0){
+                                       while(PINC.3 == 0){//Mientras esté intentando entrar activa martillo  
+                                            PORTC.5 = 1; //Activa martillo 
                                             delay_ms (5000);
-                                            PORTC.1 = 0; //Desactiva martillo
+                                            PORTC.5 = 0; //Desactiva martillo
                                        }
                                     }   
                                     
-                                    if(PINC.4 == 1){
+                                    if(PINC.4 == 0){
                                         prev  = 1;
-                                        if(PINC.3 == 1)
+                                        if(PINC.3 == 0)
                                             curre = 1; 
                                     }   
                                     
-                                    if(prev == 1 && curre == 1 && PINC.2 == 1){ 
+                                    if(prev == 1 && curre == 1 && PINC.2 == 0){ 
                                        entry=1;
                                        break;
                                     }              
@@ -251,7 +267,7 @@ while (1)
                          } 
                        }  
                     else{
-                           if(PIND.2 == 0){ //señal de paso
+                           if(PIND.2 == 1){ //señal de paso
                                  TIFR1.TOV1=1;//Resetea la bandera de overflow
                                  TCCR1B= 0x05; //Enciende timer 1 en modo normal con prescalador CK/1024  
                                  TCNT1H= 0xD9; //Contador 65536 - 55769 inicia en 55769 para contar 9767 veces , .001024 segundos por cuenta
@@ -259,21 +275,21 @@ while (1)
                                 //TIENE 10 s para pasar
                                 
                                 while(TIFR0.TOV0==0){//mientras la bandera de overflow no sea 1 
-                                    if(PINC.2 == 0 && PINC.3 == 1){
-                                       while(PINC.3 == 1){//Mientras esté intentando entrar activa martillo  
-                                            PORTC.1 = 1; //Activa martillo 
+                                    if(PINC.2 == 1 && PINC.3 == 0){
+                                       while(PINC.3 == 0){//Mientras esté intentando entrar activa martillo  
+                                            PORTC.5 = 1; //Activa martillo 
                                             delay_ms (5000);
-                                            PORTC.1 = 0; //Desactiva martillo
+                                            PORTC.5 = 0; //Desactiva martillo
                                        }
                                     }   
                                     
-                                    if(PINC.4 == 1){
+                                    if(PINC.4 == 0){
                                         prev  = 1;
-                                        if(PINC.3 == 1)
+                                        if(PINC.3 == 0)
                                             curre = 1; 
                                     }   
                                     
-                                    if(prev == 1 && curre == 1 && PINC.2 == 1){ 
+                                    if(prev == 1 && curre == 1 && PINC.2 == 0){ 
                                        break;
                                     }              
                                 }
@@ -281,12 +297,17 @@ while (1)
                            TCCR1B=0;       //Apagar timer
                            numpasos=0;
                          } 
-                    }
+                    
                }          
-              while (PIND.2 == 1){ //Señal de paso
-                                PORTC.1=0;
+              while (PIND.2 == 0){ //Señal de paso
+                                PORTC.5=0;
               }
               
         }   
 }
-}
+}    
+ 
+ 
+ 
+ 
+

@@ -41,9 +41,9 @@ while (1)
        while (PIND.4 == 1){  // PASO DERECHO
                while(PIND.5 == 0){//Pulso continuo no activo   
                     if (PINC.2 != 1){//Microswitch reposo   
-                        if(PINB.6 == 1){//Bloqueo de salida activado o también el de entrada
+                        if(PIND.6 == 1){//Bloqueo de salida activado o también el de entrada
                               PORTC.1 = 1; //Activa martillo 
-                              delay_ms (50000);
+                              delay_ms (5000);
                               PORTC.1 = 0; //Desactiva martillo
                         }   
                         else{  
@@ -51,7 +51,7 @@ while (1)
                                 if (prevS == 0){ //Switch previo, detecta que ya pasó  o no por PINC.4
                                     while(PINC.3 == 1){//Mientras esté intentando entrar activa martillo  
                                        PORTC.1 = 1; //Activa martillo 
-                                       delay_ms (50000);
+                                       delay_ms (5000);
                                        PORTC.1 = 0; //Desactiva martillo
                                     }
                                 }
