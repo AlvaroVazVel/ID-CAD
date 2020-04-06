@@ -19,4 +19,4 @@ validation                                                                      
 FLASH Allocation [words]
 Function                                                                          Address   Size
 ------------------------------------------------------------------------------------------------
-main                                                                              0x0006D    285
+main                                                                              0x0006D    291

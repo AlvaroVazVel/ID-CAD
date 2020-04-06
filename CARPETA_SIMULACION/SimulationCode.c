@@ -65,7 +65,7 @@ while (1)
                           
                         }  
                     }   
-               while(PIND.5 == 1){//Pulso continuo no activo   
+               while(PIND.5 == 1 && PIND.4 == 0){//Pulso continuo no activo y Paso sentido derecho   
                     if (PINC.2 != 0){//Microswitch reposo salio de reposo   
                         if(PIND.6 == 0){//Bloqueo de salida activado o también el de entrada
                               PORTC.5 = 1; //Activa martillo  
@@ -236,7 +236,7 @@ while (1)
                           
                         }  
                     }   
-               while(PIND.5 == 1){//Pulso continuo no activo   
+               while(PIND.5 == 1 && PIND.4 == 1){//Pulso continuo no activo y Paso sentido izquierdo 
                     if (PINC.2 != 0){//Microswitch reposo salio de reposo   
                         if(PIND.6 == 0){//Bloqueo de salida activado o también el de entrada
                               PORTC.5 = 1; //Activa martillo  
@@ -391,6 +391,5 @@ while (1)
               
         }   
 }
-}    
- 
+}
  
