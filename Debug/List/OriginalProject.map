@@ -14,8 +14,9 @@ prev                                                                            
 curre                                                                             R7,R8        2
 entry                                                                             R9,R10       2
 i                                                                                 R11,R12      2
+validation                                                                        R13,R14      2
 
 FLASH Allocation [words]
 Function                                                                          Address   Size
 ------------------------------------------------------------------------------------------------
-main                                                                              0x0006C    238
+main                                                                              0x0006D    285
