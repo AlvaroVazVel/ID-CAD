@@ -3,6 +3,9 @@
  *
  * Created: 10/03/2020 06:09:42 p. m.
  * Author: ALVARO AND DIEGO
+ *
+ * VERSION 3.0
+ *
  */
 
 #include <io.h>
@@ -91,7 +94,7 @@ while (1)
                            PORTB.7 = 1;
                            delay_ms(50);
                            PORTB.7 = 0;
-                           delay_ms(50);
+                          
                            
                           //DEFINICION DE RELOJ a 5s 
                            TCCR1B= 0x05; //Enciende timer 1 en modo normal con prescalador CK/1024  
@@ -102,6 +105,10 @@ while (1)
                              if(numpasos == 5)
                                 break;
                              
+                             if(PINC.2 == 1 && PINC.3 == 0){ 
+                                prev = 1;
+                                break;
+                             }
                              
                              if(PIND.2 == 1) // Señal de paso 
                                 validation = 1; 
@@ -118,7 +125,7 @@ while (1)
                            } 
                            TCCR1B=0;       //Apagar timer
                            PORTB.6 = 0;
-                           delay_ms(200); 
+                           delay_ms(50); 
 
                            
                           
@@ -173,7 +180,7 @@ while (1)
                            PORTB.7 = 1;
                            delay_ms(50);
                            PORTB.7 = 0;
-                           delay_ms(50);
+                           
                             
                              TIFR1.TOV1=1;//Resetea la bandera de overflow
                              TCCR1B= 0x05; //Enciende timer 1 en modo normal con prescalador CK/1024  
@@ -213,9 +220,31 @@ while (1)
                         }  
                     } 
                
-               }          
-              while (PIND.2==0){ //Mientras señal de pulso activada
-                    PORTC.5 = 0; //Martillo desactivado
+               }                
+              while (PIND.2 == 0){ //Mientras señal de pulso activada 
+                    
+                   if(PINC.2 == 1 && PINC.4 == 0 && prev == 0 && PIND.6 == 0){ // Para evitar que haga sentido opuesto
+                            while(PINC.4 == 0){//Mientras esté intentando entrar activa martillo  
+                                PORTC.5 = 1; //Activa martillo 
+                                delay_ms (200);
+                                PORTC.5 = 0; //Desactiva martillo
+                            }
+                   }   
+                                          
+                   if(PINC.3 == 0)
+                      prev  = 1;
+
+                   if(PINC.4 == 0)
+                      curre = 1; 
+                                           
+                                        
+                   if(prev == 1 && curre == 1 && PINC.2 == 0){
+                      PORTB.7 = 1;
+                      delay_ms(50);
+                      PORTB.7 = 0; 
+                      prev = 0;
+                      curre = 0;
+                  }     
               }
               
         }   
@@ -262,7 +291,7 @@ while (1)
                            PORTB.7 = 1;
                            delay_ms(50);
                            PORTB.7 = 0;
-                           delay_ms(50);
+                        
                            
                           //DEFINICION DE RELOJ a 5s 
                            TCCR1B= 0x05; //Enciende timer 1 en modo normal con prescalador CK/1024  
@@ -274,6 +303,11 @@ while (1)
                              
                              if(numpasos == 5)
                                 break;
+                             
+                             if(PINC.2 == 1 && PINC.4 == 0){ 
+                                prev = 1;
+                                break;
+                             }
                              
                              if(PIND.2 == 0 && validation == 1){ // Señal de paso
                                validation = 0; 
@@ -288,7 +322,7 @@ while (1)
                            } 
                            TCCR1B=0;       //Apagar timer
                            PORTB.6 = 0;
-                           delay_ms(200); 
+                           delay_ms(50); 
 
                            
                           
@@ -386,10 +420,30 @@ while (1)
                
                }          
               while (PIND.2==0){ //Mientras señal de pulso activada
-                    PORTC.5 = 0; //Martillo desactivado
+                    if(PINC.2 == 1 && PINC.3 == 0 && prev == 0 && PIND.6 == 0){ // Para evitar que haga sentido opuesto
+                            while(PINC.3 == 0){//Mientras esté intentando entrar activa martillo  
+                                PORTC.5 = 1; //Activa martillo 
+                                delay_ms (200);
+                                PORTC.5 = 0; //Desactiva martillo
+                            }
+                   }   
+                                          
+                   if(PINC.4 == 0)
+                      prev  = 1;
+
+                   if(PINC.3 == 0)
+                      curre = 1; 
+                                           
+                                        
+                   if(prev == 1 && curre == 1 && PINC.2 == 0){
+                      PORTB.7 = 1;
+                      delay_ms(50);
+                      PORTB.7 = 0; 
+                      prev = 0;
+                      curre = 0;
+                  }
               }
               
         }   
 }
 }
- 
