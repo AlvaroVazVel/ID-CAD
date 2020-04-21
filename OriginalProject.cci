@@ -1,4 +1,4 @@
-VERSION:3 SOURCE_TIMESTAMP:50889076
+VERSION:3 SOURCE_TIMESTAMP:5094A5C6
 NODE:I LEVEL:0 LINE:11 "C:\cvavreval\inc\io.h"
 NODE:I LEVEL:0 LINE:12 "C:\cvavreval\inc\delay.h"
 NODE:V LEVEL:0 LINE:16 "numpasos -> R3,R4"
@@ -7,4 +7,6 @@ NODE:V LEVEL:0 LINE:18 "curre -> R7,R8"
 NODE:V LEVEL:0 LINE:19 "entry -> R9,R10"
 NODE:V LEVEL:0 LINE:20 "i -> R11,R12"
 NODE:V LEVEL:0 LINE:21 "validation -> R13,R14"
-NODE:F LEVEL:0 LINE:39 "main(void)"
+NODE:V LEVEL:0 LINE:23 "pasosLED -> RAM:????"
+NODE:F LEVEL:0 LINE:44 "contadorLED(unsigned int cont)"
+NODE:F LEVEL:0 LINE:70 "main(void)"

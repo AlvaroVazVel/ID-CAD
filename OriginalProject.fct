@@ -1,1 +1,2 @@
-main DSTACK_USAGE:0 DSTACK_LEVEL:0 FILE:"OriginalProject.c" LINE:39
+main DSTACK_USAGE:0 DSTACK_LEVEL:0 FILE:"OriginalProject.c" LINE:70
+contadorLED DSTACK_USAGE:2 DSTACK_LEVEL:2 FILE:"OriginalProject.c" LINE:44

@@ -4,8 +4,8 @@
  * Created: 10/03/2020 06:09:42 p. m.
  * Author: ALVARO AND DIEGO   
  *
- * VERSION 3.0
- *
+ * VERSION 3.1
+ * version 3.1 contains the binary counter (LED) for the number of access.
  */
 
 #include <io.h>
@@ -19,6 +19,8 @@ unsigned int curre    = 0;
 unsigned int entry    = 0;
 unsigned int i = 0;
 unsigned int validation = 0;
+
+unsigned int pasosLED = 0;
 
 
 //ENTRADAS
@@ -34,14 +36,44 @@ unsigned int validation = 0;
 //SALIDAS
 //PINC.5 Bloqueo electroimán (Salida para solenoide)
 
+// CONTADOR LED
+//PINC.0 - LSB
+//PINC.1 
+//PIND.3 - MSB
 
+void contadorLED (unsigned int cont){
+    switch(cont){
+        case 0:
+             PORTD.3 = 0; PORTC.1 = 0; PORTC.0 = 0;
+        break;
+        case 1: 
+             PORTD.3 = 0; PORTC.1 = 0; PORTC.0 = 1;
+        break;
+        case 2:
+             PORTD.3 = 0; PORTC.1 = 1; PORTC.0 = 0;
+        break;
+        case 3:
+             PORTD.3 = 0; PORTC.1 = 1; PORTC.0 = 1;
+        break;
+        case 4:
+             PORTD.3 = 1; PORTC.1 = 0; PORTC.0 = 0;
+        break;
+        case 5:
+             PORTD.3 = 1; PORTC.1 = 0; PORTC.0 = 1;
+        break; 
+        default:
+             PORTD.3 = 0; PORTC.1 = 0; PORTC.0 = 0;
+        break;                                
+    }    
+}
 
 void main(void)
 {
 
-DDRD  = 0x00; //DipSwitch entrada y push 
+
+DDRD  = 0x08; //DipSwitch entrada y push 
 PORTD = 0xF4; //Pull up para dipswitches y pushbutton
-DDRC  = 0x20; //Salida solenoide y microswitches entrada
+DDRC  = 0x23; //Salida solenoide y microswitches entrada
 PORTC = 0x1C; //Pull up en microswitches 
 
 TCNT1H= 0xEC; //Contador 65536 -60653  inicia en 60653 para contar 4883 veces , .001024 segundos por cuenta
@@ -88,7 +120,8 @@ while (1)
                            validation = 1; 
                         if(PIND.2 == 0 && validation == 1){ // Señal de paso
                            validation = 0;
-                           numpasos++; 
+                           numpasos++;   
+                           contadorLED(numpasos);
                      
                           
                            
@@ -110,7 +143,8 @@ while (1)
                                 validation = 1; 
                              if(PIND.2 == 0 && validation == 1){ // Señal de paso
                                validation = 0;                
-                               numpasos++;
+                               numpasos++;    
+                               contadorLED(numpasos);
                                TIFR1.TOV1=1;//Resetea la bandera de overflow
                                TCNT1H= 0xEC; //Contador 65536 -60653  inicia en 60653 para contar 4883 veces , .001024 segundos por cuenta
                                TCNT1L= 0xED; //Se pone 60653 dividido en los 8MSB para TCNT1H y los 8LSB para TCNT1L 
@@ -118,7 +152,7 @@ while (1)
                            } 
                            TCCR1B=0;       //Apagar timer 1 
 
-                           
+                           pasosLED = numpasos;
                           
                            for (i=0;i<numpasos;i++){ 
                                  TIFR1.TOV1=1;//Resetea la bandera de overflow
@@ -144,7 +178,9 @@ while (1)
                                     if(prev == 1 && curre == 1 && PINC.2 == 0){
                                        entry=1;
                                        prev = 0;
-                                       curre = 0;
+                                       curre = 0; 
+                                       pasosLED--;
+                                       contadorLED(pasosLED);
                                        break;
                                     }              
                                 }
@@ -154,7 +190,9 @@ while (1)
                                 }
                            } 
                            TCCR1B=0;       //Apagar timer
-                           numpasos=0;
+                           numpasos=0;   
+                           pasosLED = 0;
+                           contadorLED(numpasos);
                          } 
                        }  
                     else{
@@ -163,6 +201,7 @@ while (1)
                          if(PIND.2 == 0 && validation == 1){ // Señal de paso
                            validation = 0;
                            numpasos = 1; 
+                           contadorLED(numpasos);
                            
                             
                              TIFR1.TOV1=1;//Resetea la bandera de overflow
@@ -194,7 +233,8 @@ while (1)
                                 }              
                             }     
                            TCCR1B=0;       //Apagar timer
-                           numpasos=0;
+                           numpasos=0;  
+                           contadorLED(numpasos);
                         }  
                     } 
                
@@ -262,7 +302,8 @@ while (1)
                            validation = 1; 
                         if(PIND.2 == 0 && validation == 1){ // Señal de paso
                            validation = 0;
-                           numpasos++; 
+                           numpasos++;       
+                           contadorLED(numpasos);
                         
                            
                           //DEFINICION DE RELOJ a 5s 
@@ -282,7 +323,8 @@ while (1)
                              
                              if(PIND.2 == 0 && validation == 1){ // Señal de paso
                                validation = 0; 
-                               numpasos++;
+                               numpasos++;      
+                               contadorLED(numpasos);
                                TIFR1.TOV1=1;//Resetea la bandera de overflow
                                TCNT1H= 0xEC; //Contador 65536 -60653  inicia en 60653 para contar 4883 veces , .001024 segundos por cuenta
                                TCNT1L= 0xED; //Se pone 60653 dividido en los 8MSB para TCNT1H y los 8LSB para TCNT1L 
@@ -290,6 +332,7 @@ while (1)
                            } 
                            TCCR1B=0;       //Apagar timer 
 
+                           pasosLED = numpasos;
                                                 
                            for (i=0;i<numpasos;i++){ 
                                  TIFR1.TOV1=1;//Resetea la bandera de overflow
@@ -315,7 +358,8 @@ while (1)
                                     if(prev == 1 && curre == 1 && PINC.2 == 0){
                                        entry=1;
                                        prev = 0;
-                                       curre = 0;
+                                       curre = 0;  
+                                       pasosLED = numpasos;
                                        break;
                                     }              
                                 }
@@ -325,7 +369,9 @@ while (1)
                                 }
                            }
                            TCCR1B=0;       //Apagar timer
-                           numpasos=0;
+                           numpasos=0;   
+                           pasosLED = 0;  
+                           contadorLED(numpasos);
                          } 
                        }  
                     else{
@@ -333,7 +379,8 @@ while (1)
                            validation = 1; 
                          if(PIND.2 == 0 && validation == 1){ // Señal de paso
                            validation = 0;
-                           numpasos = 1; 
+                           numpasos = 1;     
+                           contadorLED(numpasos);
                             
                              TIFR1.TOV1=1;//Resetea la bandera de overflow
                              TCCR1B= 0x05; //Enciende timer 1 en modo normal con prescalador CK/1024  
@@ -365,7 +412,8 @@ while (1)
                             }
                                 
                            TCCR1B=0;       //Apagar timer
-                           numpasos=0;
+                           numpasos=0;    
+                           contadorLED(numpasos);
                         }  
                     } 
                

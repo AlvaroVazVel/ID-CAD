@@ -1,5 +1,5 @@
 
-AVRASM ver. 2.1.30  C:\CAD PROJECT\Debug\List\OriginalProject.asm Wed Apr 08 18:03:44 2020
+AVRASM ver. 2.1.30  C:\CAD PROJECT\Debug\List\OriginalProject.asm Mon Apr 20 20:51:32 2020
 
 C:\CAD PROJECT\Debug\List\OriginalProject.asm(1085): warning: Register r3 already defined by the .DEF directive
 C:\CAD PROJECT\Debug\List\OriginalProject.asm(1086): warning: Register r4 already defined by the .DEF directive
@@ -1235,7 +1235,7 @@ C:\CAD PROJECT\Debug\List\OriginalProject.asm(1096): warning: Register r14 alrea
 000069 e0c0      	LDI  R28,LOW(__SRAM_START+__DSTACK_SIZE)
 00006a e0d3      	LDI  R29,HIGH(__SRAM_START+__DSTACK_SIZE)
                  
-00006b 940c 006d 	JMP  _main
+00006b 940c 009d 	JMP  _main
                  
                  	.ESEG
                  	.ORG 0x00
@@ -1250,8 +1250,8 @@ C:\CAD PROJECT\Debug\List\OriginalProject.asm(1096): warning: Register r14 alrea
                  ; * Created: 10/03/2020 06:09:42 p. m.
                  ; * Author: ALVARO AND DIEGO
                  ; *
-                 ; * VERSION 3.0
-                 ; *
+                 ; * VERSION 3.1
+                 ; * version 3.1 contains the binary counter (LED) for the number of access.
                  ; */
                  ;
                  ;#include <io.h>
@@ -1277,6 +1277,8 @@ C:\CAD PROJECT\Debug\List\OriginalProject.asm(1096): warning: Register r14 alrea
                  ;unsigned int i = 0;
                  ;unsigned int validation = 0;
                  ;
+                 ;unsigned int pasosLED = 0;
+                 ;
                  ;
                  ;//ENTRADAS
                  ;//PIND.2 PushButton Señal de paso
@@ -1291,1043 +1293,1205 @@ C:\CAD PROJECT\Debug\List\OriginalProject.asm(1096): warning: Register r14 alrea
                  ;//SALIDAS
                  ;//PINC.5 Bloqueo electroimán (Salida para solenoide)
                  ;
+                 ;// CONTADOR LED
+                 ;//PINC.0 - LSB
+                 ;//PINC.1
+                 ;//PIND.3 - MSB
                  ;
-                 ;
-                 ;void main(void)
-                 ; 0000 0028 {
+                 ;void contadorLED (unsigned int cont){
+                 ; 0000 002C void contadorLED (unsigned int cont){
                  
                  	.CSEG
+                 _contadorLED:
+                 ; .FSTART _contadorLED
+                 ; 0000 002D     switch(cont){
+00006d 93ba      	ST   -Y,R27
+00006e 93aa      	ST   -Y,R26
+                 ;	cont -> Y+0
+00006f 81e8      	LD   R30,Y
+000070 81f9      	LDD  R31,Y+1
+                 ; 0000 002E         case 0:
+000071 9730      	SBIW R30,0
+000072 f129      	BREQ _0x12D
+                 ; 0000 002F              PORTD.3 = 0; PORTC.1 = 0; PORTC.0 = 0;
+                 ; 0000 0030         break;
+                 ; 0000 0031         case 1:
+000073 30e1      	CPI  R30,LOW(0x1)
+000074 e0a0      	LDI  R26,HIGH(0x1)
+000075 07fa      	CPC  R31,R26
+000076 f421      	BRNE _0xD
+                 ; 0000 0032              PORTD.3 = 0; PORTC.1 = 0; PORTC.0 = 1;
+000077 985b      	CBI  0xB,3
+000078 9841      	CBI  0x8,1
+000079 9a40      	SBI  0x8,0
+                 ; 0000 0033         break;
+00007a c020      	RJMP _0x5
+                 ; 0000 0034         case 2:
+                 _0xD:
+00007b 30e2      	CPI  R30,LOW(0x2)
+00007c e0a0      	LDI  R26,HIGH(0x2)
+00007d 07fa      	CPC  R31,R26
+00007e f419      	BRNE _0x14
+                 ; 0000 0035              PORTD.3 = 0; PORTC.1 = 1; PORTC.0 = 0;
+00007f 985b      	CBI  0xB,3
+000080 9a41      	SBI  0x8,1
+000081 c018      	RJMP _0x12E
+                 ; 0000 0036         break;
+                 ; 0000 0037         case 3:
+                 _0x14:
+000082 30e3      	CPI  R30,LOW(0x3)
+000083 e0a0      	LDI  R26,HIGH(0x3)
+000084 07fa      	CPC  R31,R26
+000085 f421      	BRNE _0x1B
+                 ; 0000 0038              PORTD.3 = 0; PORTC.1 = 1; PORTC.0 = 1;
+000086 985b      	CBI  0xB,3
+000087 9a41      	SBI  0x8,1
+000088 9a40      	SBI  0x8,0
+                 ; 0000 0039         break;
+000089 c011      	RJMP _0x5
+                 ; 0000 003A         case 4:
+                 _0x1B:
+00008a 30e4      	CPI  R30,LOW(0x4)
+00008b e0a0      	LDI  R26,HIGH(0x4)
+00008c 07fa      	CPC  R31,R26
+00008d f411      	BRNE _0x22
+                 ; 0000 003B              PORTD.3 = 1; PORTC.1 = 0; PORTC.0 = 0;
+00008e 9a5b      	SBI  0xB,3
+00008f c009      	RJMP _0x12F
+                 ; 0000 003C         break;
+                 ; 0000 003D         case 5:
+                 _0x22:
+000090 30e5      	CPI  R30,LOW(0x5)
+000091 e0a0      	LDI  R26,HIGH(0x5)
+000092 07fa      	CPC  R31,R26
+000093 f421      	BRNE _0x30
+                 ; 0000 003E              PORTD.3 = 1; PORTC.1 = 0; PORTC.0 = 1;
+000094 9a5b      	SBI  0xB,3
+000095 9841      	CBI  0x8,1
+000096 9a40      	SBI  0x8,0
+                 ; 0000 003F         break;
+000097 c003      	RJMP _0x5
+                 ; 0000 0040         default:
+                 _0x30:
+                 ; 0000 0041              PORTD.3 = 0; PORTC.1 = 0; PORTC.0 = 0;
+                 _0x12D:
+000098 985b      	CBI  0xB,3
+                 _0x12F:
+000099 9841      	CBI  0x8,1
+                 _0x12E:
+00009a 9840      	CBI  0x8,0
+                 ; 0000 0042         break;
+                 ; 0000 0043     }
+                 _0x5:
+                 ; 0000 0044 }
+00009b 9622      	ADIW R28,2
+00009c 9508      	RET
+                 ; .FEND
+                 ;
+                 ;void main(void)
+                 ; 0000 0047 {
                  _main:
                  ; .FSTART _main
-                 ; 0000 0029 
-                 ; 0000 002A DDRD  = 0x00; //DipSwitch entrada y push
-00006d e0e0      	LDI  R30,LOW(0)
-00006e b9ea      	OUT  0xA,R30
-                 ; 0000 002B PORTD = 0xF4; //Pull up para dipswitches y pushbutton
-00006f efe4      	LDI  R30,LOW(244)
-000070 b9eb      	OUT  0xB,R30
-                 ; 0000 002C DDRC  = 0x20; //Salida solenoide y microswitches entrada
-000071 e2e0      	LDI  R30,LOW(32)
-000072 b9e7      	OUT  0x7,R30
-                 ; 0000 002D PORTC = 0x1C; //Pull up en microswitches
-000073 e1ec      	LDI  R30,LOW(28)
-000074 b9e8      	OUT  0x8,R30
-                 ; 0000 002E 
-                 ; 0000 002F TCNT1H= 0xEC; //Contador 65536 -60653  inicia en 60653 para contar 4883 veces , .001024 segundos por cuenta
-000075 d15c      	RCALL SUBOPT_0x0
-                 ; 0000 0030 TCNT1L= 0xED; //Se pone 60653 dividido en los 8MSB para TCNT1H y los 8LSB para TCNT1L
-                 ; 0000 0031 
-                 ; 0000 0032 
-                 ; 0000 0033 while (1)
-                 _0x3:
-                 ; 0000 0034     {
-                 ; 0000 0035        while (PIND.4 == 0){  // PASO SENTIDO DERECHO
-                 _0x6:
-000076 994c      	SBIC 0x9,4
-000077 c0ab      	RJMP _0x8
-                 ; 0000 0036         if (PINC.2 != 0){//Microswitch reposo //salio de reposo
-000078 9b32      	SBIS 0x6,2
-000079 c008      	RJMP _0x9
-                 ; 0000 0037                         if(PIND.6 == 0){//Bloqueo de salida activado o también el de entrada
-00007a 994e      	SBIC 0x9,6
-00007b c002      	RJMP _0xA
-                 ; 0000 0038                               PORTC.5 = 1; //Activa martillo
-00007c d15c      	RCALL SUBOPT_0x1
-                 ; 0000 0039                               delay_ms (200);
-                 ; 0000 003A                               PORTC.5 = 0; //Desactiva martillo
-                 ; 0000 003B                         }
-                 ; 0000 003C                         else{
-00007d c004      	RJMP _0xF
-                 _0xA:
-                 ; 0000 003D                                while(PINC.3 == 0){//Mientras esté intentando entrar activa martillo
-                 _0x10:
-00007e 9933      	SBIC 0x6,3
-00007f c002      	RJMP _0x12
-                 ; 0000 003E                                     PORTC.5 = 1; //Activa martillo
-000080 d158      	RCALL SUBOPT_0x1
-                 ; 0000 003F                                     delay_ms (200);
-                 ; 0000 0040                                     PORTC.5 = 0; //Desactiva martillo
-                 ; 0000 0041                                }
-000081 cffc      	RJMP _0x10
-                 _0x12:
-                 ; 0000 0042 
-                 ; 0000 0043                         }
-                 _0xF:
-                 ; 0000 0044                     }
-                 ; 0000 0045                while(PIND.5 == 1 && PIND.4 == 0){//Pulso continuo no activo y Paso sentido derecho
-                 _0x9:
-                 _0x17:
-000082 9b4d      	SBIS 0x9,5
-000083 c002      	RJMP _0x1A
-000084 9b4c      	SBIS 0x9,4
-000085 c001      	RJMP _0x1B
-                 _0x1A:
-000086 c07d      	RJMP _0x19
-                 _0x1B:
-                 ; 0000 0046                     if (PINC.2 != 0){//Microswitch reposo salio de reposo
-000087 9b32      	SBIS 0x6,2
-000088 c008      	RJMP _0x1C
-                 ; 0000 0047                         if(PIND.6 == 0){//Bloqueo de salida activado o también el de entrada
-000089 994e      	SBIC 0x9,6
-00008a c002      	RJMP _0x1D
-                 ; 0000 0048                               PORTC.5 = 1; //Activa martillo
-00008b d14d      	RCALL SUBOPT_0x1
-                 ; 0000 0049                               delay_ms (200);
-                 ; 0000 004A                               PORTC.5 = 0; //Desactiva martillo
-                 ; 0000 004B                         }
-                 ; 0000 004C                         else{
-00008c c004      	RJMP _0x22
-                 _0x1D:
-                 ; 0000 004D                                while(PINC.3 == 0){//Mientras esté intentando entrar activa martillo
-                 _0x23:
-00008d 9933      	SBIC 0x6,3
-00008e c002      	RJMP _0x25
-                 ; 0000 004E                                     PORTC.5 = 1; //Activa martillo
-00008f d149      	RCALL SUBOPT_0x1
-                 ; 0000 004F                                     delay_ms (200);
-                 ; 0000 0050                                     PORTC.5 = 0; //Desactiva martillo
-                 ; 0000 0051                                }
-000090 cffc      	RJMP _0x23
-                 _0x25:
+                 ; 0000 0048 
+                 ; 0000 0049 
+                 ; 0000 004A DDRD  = 0x08; //DipSwitch entrada y push
+00009d e0e8      	LDI  R30,LOW(8)
+00009e b9ea      	OUT  0xA,R30
+                 ; 0000 004B PORTD = 0xF4; //Pull up para dipswitches y pushbutton
+00009f efe4      	LDI  R30,LOW(244)
+0000a0 b9eb      	OUT  0xB,R30
+                 ; 0000 004C DDRC  = 0x23; //Salida solenoide y microswitches entrada
+0000a1 e2e3      	LDI  R30,LOW(35)
+0000a2 b9e7      	OUT  0x7,R30
+                 ; 0000 004D PORTC = 0x1C; //Pull up en microswitches
+0000a3 e1ec      	LDI  R30,LOW(28)
+0000a4 b9e8      	OUT  0x8,R30
+                 ; 0000 004E 
+                 ; 0000 004F TCNT1H= 0xEC; //Contador 65536 -60653  inicia en 60653 para contar 4883 veces , .001024 segundos por cuenta
+0000a5 d174      	RCALL SUBOPT_0x0
+                 ; 0000 0050 TCNT1L= 0xED; //Se pone 60653 dividido en los 8MSB para TCNT1H y los 8LSB para TCNT1L
+                 ; 0000 0051 
                  ; 0000 0052 
-                 ; 0000 0053                         }
-                 _0x22:
-                 ; 0000 0054                     }
-                 ; 0000 0055                      if (PIND.7 == 0){//MODO MULTIPULSO
-                 _0x1C:
-000091 994f      	SBIC 0x9,7
-000092 c04a      	RJMP _0x2A
-                 ; 0000 0056 
-                 ; 0000 0057                         if(PIND.2 == 1)
-000093 994a      	SBIC 0x9,2
-                 ; 0000 0058                            validation = 1;
-000094 d14a      	RCALL SUBOPT_0x2
-                 ; 0000 0059                         if(PIND.2 == 0 && validation == 1){ // Señal de paso
-000095 994a      	SBIC 0x9,2
-000096 c002      	RJMP _0x2D
-000097 d14c      	RCALL SUBOPT_0x3
-000098 f009      	BREQ _0x2E
-                 _0x2D:
-000099 c042      	RJMP _0x2C
-                 _0x2E:
-                 ; 0000 005A                            validation = 0;
-00009a d14e      	RCALL SUBOPT_0x4
-                 ; 0000 005B                            numpasos++;
-                 ; 0000 005C 
-                 ; 0000 005D 
-                 ; 0000 005E 
-                 ; 0000 005F                           //DEFINICION DE RELOJ a 5s
-                 ; 0000 0060                            TCCR1B= 0x05; //Enciende timer 1 en modo normal con prescalador CK/1024
-00009b e0e5      	LDI  R30,LOW(5)
-00009c 93e0 0081 	STS  129,R30
-                 ; 0000 0061 
-                 ; 0000 0062                            while(TIFR1.TOV1==0){ //Mientras la bandera de overflow no sea 1
-                 _0x2F:
-00009e 99b0      	SBIC 0x16,0
-00009f c014      	RJMP _0x31
-                 ; 0000 0063 
-                 ; 0000 0064 
-                 ; 0000 0065                              if(numpasos == 5)
-0000a0 d14f      	RCALL SUBOPT_0x5
-0000a1 f091      	BREQ _0x31
-                 ; 0000 0066                                 break;
-                 ; 0000 0067 
-                 ; 0000 0068                              if(PINC.2 == 1 && PINC.3 == 0){
-0000a2 9b32      	SBIS 0x6,2
-0000a3 c002      	RJMP _0x34
-0000a4 9b33      	SBIS 0x6,3
-0000a5 c001      	RJMP _0x35
-                 _0x34:
-0000a6 c002      	RJMP _0x33
-                 _0x35:
-                 ; 0000 0069                                 prev = 1;
-0000a7 d14d      	RCALL SUBOPT_0x6
-                 ; 0000 006A                                 break;
-0000a8 c00b      	RJMP _0x31
-                 ; 0000 006B                              }
-                 ; 0000 006C 
-                 ; 0000 006D                              if(PIND.2 == 1) // Señal de paso
-                 _0x33:
-0000a9 994a      	SBIC 0x9,2
-                 ; 0000 006E                                 validation = 1;
-0000aa d134      	RCALL SUBOPT_0x2
-                 ; 0000 006F                              if(PIND.2 == 0 && validation == 1){ // Señal de paso
-0000ab 994a      	SBIC 0x9,2
-0000ac c002      	RJMP _0x38
-0000ad d136      	RCALL SUBOPT_0x3
-0000ae f009      	BREQ _0x39
-                 _0x38:
-0000af c003      	RJMP _0x37
-                 _0x39:
-                 ; 0000 0070                                validation = 0;
-0000b0 d138      	RCALL SUBOPT_0x4
-                 ; 0000 0071                                numpasos++;
-                 ; 0000 0072                                TIFR1.TOV1=1;//Resetea la bandera de overflow
-0000b1 9ab0      	SBI  0x16,0
-                 ; 0000 0073                                TCNT1H= 0xEC; //Contador 65536 -60653  inicia en 60653 para contar 4883 veces , .001024 s ...
-0000b2 d11f      	RCALL SUBOPT_0x0
-                 ; 0000 0074                                TCNT1L= 0xED; //Se pone 60653 dividido en los 8MSB para TCNT1H y los 8LSB para TCNT1L
-                 ; 0000 0075                              }
-                 ; 0000 0076                            }
+                 ; 0000 0053 while (1)
                  _0x37:
-0000b3 cfea      	RJMP _0x2F
-                 _0x31:
-                 ; 0000 0077                            TCCR1B=0;       //Apagar timer 1
-0000b4 d145      	RCALL SUBOPT_0x7
-                 ; 0000 0078 
-                 ; 0000 0079 
-                 ; 0000 007A 
-                 ; 0000 007B                            for (i=0;i<numpasos;i++){
-                 _0x3D:
-                +
-0000b5 14b3     +CP R11 , R3
-0000b6 04c4     +CPC R12 , R4
-                 	__CPWRR 11,12,3,4
-0000b7 f518      	BRSH _0x3E
-                 ; 0000 007C                                  TIFR1.TOV1=1;//Resetea la bandera de overflow
-0000b8 d147      	RCALL SUBOPT_0x8
-                 ; 0000 007D                                  TCCR1B= 0x05; //Enciende timer 1 en modo normal con prescalador CK/1024
-                 ; 0000 007E                                  TCNT1H= 0xD9; //Contador 65536 - 55769 inicia en 55769 para contar 9767 veces , .001024 ...
-                 ; 0000 007F                                  TCNT1L= 0xD9; //Se pone 55769 dividido en los 8MSB para TCNT1H y los 8LSB para TCNT1L
-                 ; 0000 0080                                 //TIENE 10 s para pasar
-                 ; 0000 0081                                 while(TIFR1.TOV1==0){//mientras la bandera de overflow no sea 1
-                 _0x41:
-0000b9 99b0      	SBIC 0x16,0
-0000ba c01b      	RJMP _0x43
-                 ; 0000 0082                                     if(PINC.2 == 1 && PINC.4 == 0 && prev == 0){ // Para evitar que haga sentido opuesto
-0000bb 9b32      	SBIS 0x6,2
-0000bc c006      	RJMP _0x45
-0000bd 9934      	SBIC 0x6,4
-0000be c004      	RJMP _0x45
-0000bf 2400      	CLR  R0
-0000c0 1405      	CP   R0,R5
-0000c1 0406      	CPC  R0,R6
-0000c2 f009      	BREQ _0x46
-                 _0x45:
-0000c3 c004      	RJMP _0x44
-                 _0x46:
-                 ; 0000 0083                                        while(PINC.4 == 0){//Mientras esté intentando entrar activa martillo
-                 _0x47:
-0000c4 9934      	SBIC 0x6,4
-0000c5 c002      	RJMP _0x49
-                 ; 0000 0084                                             PORTC.5 = 1; //Activa martillo
-0000c6 d112      	RCALL SUBOPT_0x1
-                 ; 0000 0085                                             delay_ms (200);
-                 ; 0000 0086                                             PORTC.5 = 0; //Desactiva martillo
-                 ; 0000 0087                                        }
-0000c7 cffc      	RJMP _0x47
-                 _0x49:
-                 ; 0000 0088                                     }
-                 ; 0000 0089 
-                 ; 0000 008A                                     if(PINC.3 == 0)
-                 _0x44:
-0000c8 9b33      	SBIS 0x6,3
-                 ; 0000 008B                                         prev  = 1;
-0000c9 d12b      	RCALL SUBOPT_0x6
-                 ; 0000 008C 
-                 ; 0000 008D                                     if(PINC.4 == 0)
-0000ca 9b34      	SBIS 0x6,4
-                 ; 0000 008E                                         curre = 1;
-0000cb d13e      	RCALL SUBOPT_0x9
-                 ; 0000 008F 
-                 ; 0000 0090                                     if(prev == 1 && curre == 1 && PINC.2 == 0){
-0000cc d142      	RCALL SUBOPT_0xA
-0000cd f421      	BRNE _0x51
-0000ce d145      	RCALL SUBOPT_0xB
-0000cf f411      	BRNE _0x51
-0000d0 9b32      	SBIS 0x6,2
-0000d1 c001      	RJMP _0x52
-                 _0x51:
-0000d2 c002      	RJMP _0x50
-                 _0x52:
-                 ; 0000 0091                                        entry=1;
-0000d3 d145      	RCALL SUBOPT_0xC
-                 ; 0000 0092                                        prev = 0;
-                 ; 0000 0093                                        curre = 0;
-                 ; 0000 0094                                        break;
-0000d4 c001      	RJMP _0x43
-                 ; 0000 0095                                     }
-                 ; 0000 0096                                 }
-                 _0x50:
-0000d5 cfe3      	RJMP _0x41
-                 _0x43:
-                 ; 0000 0097 
-                 ; 0000 0098                                 if(entry == 0){ //Checa la bandera de si el usuario pasó
-0000d6 2c09      	MOV  R0,R9
-0000d7 280a      	OR   R0,R10
-0000d8 f011      	BREQ _0x3E
-                 ; 0000 0099                                     break;
-                 ; 0000 009A                                 }
-                 ; 0000 009B                            }
-0000d9 d148      	RCALL SUBOPT_0xD
-0000da cfda      	RJMP _0x3D
+                 ; 0000 0054     {
+                 ; 0000 0055        while (PIND.4 == 0){  // PASO SENTIDO DERECHO
+                 _0x3A:
+0000a6 994c      	SBIC 0x9,4
+0000a7 c0bb      	RJMP _0x3C
+                 ; 0000 0056         if (PINC.2 != 0){//Microswitch reposo //salio de reposo
+0000a8 9b32      	SBIS 0x6,2
+0000a9 c008      	RJMP _0x3D
+                 ; 0000 0057                         if(PIND.6 == 0){//Bloqueo de salida activado o también el de entrada
+0000aa 994e      	SBIC 0x9,6
+0000ab c002      	RJMP _0x3E
+                 ; 0000 0058                               PORTC.5 = 1; //Activa martillo
+0000ac d174      	RCALL SUBOPT_0x1
+                 ; 0000 0059                               delay_ms (200);
+                 ; 0000 005A                               PORTC.5 = 0; //Desactiva martillo
+                 ; 0000 005B                         }
+                 ; 0000 005C                         else{
+0000ad c004      	RJMP _0x43
                  _0x3E:
-                 ; 0000 009C                            TCCR1B=0;       //Apagar timer
-0000db d14b      	RCALL SUBOPT_0xE
-                 ; 0000 009D                            numpasos=0;
-                 ; 0000 009E                          }
-                 ; 0000 009F                        }
-                 _0x2C:
-                 ; 0000 00A0                     else{
-0000dc c026      	RJMP _0x54
-                 _0x2A:
-                 ; 0000 00A1                          if(PIND.2 == 1)
-0000dd 994a      	SBIC 0x9,2
-                 ; 0000 00A2                            validation = 1;
-0000de d100      	RCALL SUBOPT_0x2
-                 ; 0000 00A3                          if(PIND.2 == 0 && validation == 1){ // Señal de paso
-0000df 994a      	SBIC 0x9,2
-0000e0 c002      	RJMP _0x57
-0000e1 d102      	RCALL SUBOPT_0x3
-0000e2 f009      	BREQ _0x58
+                 ; 0000 005D                                while(PINC.3 == 0){//Mientras esté intentando entrar activa martillo
+                 _0x44:
+0000ae 9933      	SBIC 0x6,3
+0000af c002      	RJMP _0x46
+                 ; 0000 005E                                     PORTC.5 = 1; //Activa martillo
+0000b0 d170      	RCALL SUBOPT_0x1
+                 ; 0000 005F                                     delay_ms (200);
+                 ; 0000 0060                                     PORTC.5 = 0; //Desactiva martillo
+                 ; 0000 0061                                }
+0000b1 cffc      	RJMP _0x44
+                 _0x46:
+                 ; 0000 0062 
+                 ; 0000 0063                         }
+                 _0x43:
+                 ; 0000 0064                     }
+                 ; 0000 0065                while(PIND.5 == 1 && PIND.4 == 0){//Pulso continuo no activo y Paso sentido derecho
+                 _0x3D:
+                 _0x4B:
+0000b2 9b4d      	SBIS 0x9,5
+0000b3 c002      	RJMP _0x4E
+0000b4 9b4c      	SBIS 0x9,4
+0000b5 c001      	RJMP _0x4F
+                 _0x4E:
+0000b6 c08d      	RJMP _0x4D
+                 _0x4F:
+                 ; 0000 0066                     if (PINC.2 != 0){//Microswitch reposo salio de reposo
+0000b7 9b32      	SBIS 0x6,2
+0000b8 c008      	RJMP _0x50
+                 ; 0000 0067                         if(PIND.6 == 0){//Bloqueo de salida activado o también el de entrada
+0000b9 994e      	SBIC 0x9,6
+0000ba c002      	RJMP _0x51
+                 ; 0000 0068                               PORTC.5 = 1; //Activa martillo
+0000bb d165      	RCALL SUBOPT_0x1
+                 ; 0000 0069                               delay_ms (200);
+                 ; 0000 006A                               PORTC.5 = 0; //Desactiva martillo
+                 ; 0000 006B                         }
+                 ; 0000 006C                         else{
+0000bc c004      	RJMP _0x56
+                 _0x51:
+                 ; 0000 006D                                while(PINC.3 == 0){//Mientras esté intentando entrar activa martillo
                  _0x57:
-0000e3 c01f      	RJMP _0x56
-                 _0x58:
-                 ; 0000 00A4                            validation = 0;
-0000e4 d148      	RCALL SUBOPT_0xF
-                 ; 0000 00A5                            numpasos = 1;
-                 ; 0000 00A6 
-                 ; 0000 00A7 
-                 ; 0000 00A8                              TIFR1.TOV1=1;//Resetea la bandera de overflow
-                 ; 0000 00A9                              TCCR1B= 0x05; //Enciende timer 1 en modo normal con prescalador CK/1024
-                 ; 0000 00AA                              TCNT1H= 0xD9; //Contador 65536 - 55769 inicia en 55769 para contar 9767 veces , .001024 seg ...
-                 ; 0000 00AB                              TCNT1L= 0xD9; //Se pone 55769 dividido en los 8MSB para TCNT1H y los 8LSB para TCNT1L
-                 ; 0000 00AC                             //TIENE 10 s para pasar
-                 ; 0000 00AD                              while(TIFR1.TOV1==0){//mientras la bandera de overflow no sea 1
-                 _0x5B:
-0000e5 99b0      	SBIC 0x16,0
-0000e6 c01b      	RJMP _0x5D
-                 ; 0000 00AE                                 if(PINC.2 == 1 && PINC.4 == 0 && prev == 0){ // Para evitar que haga sentido opuesto
-0000e7 9b32      	SBIS 0x6,2
-0000e8 c006      	RJMP _0x5F
-0000e9 9934      	SBIC 0x6,4
-0000ea c004      	RJMP _0x5F
-0000eb 2400      	CLR  R0
-0000ec 1405      	CP   R0,R5
-0000ed 0406      	CPC  R0,R6
-0000ee f009      	BREQ _0x60
-                 _0x5F:
-0000ef c004      	RJMP _0x5E
-                 _0x60:
-                 ; 0000 00AF                                    while(PINC.4 == 0){//Mientras esté intentando entrar activa martillo
-                 _0x61:
-0000f0 9934      	SBIC 0x6,4
-0000f1 c002      	RJMP _0x63
-                 ; 0000 00B0                                         PORTC.5 = 1; //Activa martillo
-0000f2 d0e6      	RCALL SUBOPT_0x1
-                 ; 0000 00B1                                         delay_ms (200);
-                 ; 0000 00B2                                         PORTC.5 = 0; //Desactiva martillo
-                 ; 0000 00B3                                    }
-0000f3 cffc      	RJMP _0x61
-                 _0x63:
-                 ; 0000 00B4                                 }
-                 ; 0000 00B5 
-                 ; 0000 00B6                                 if(PINC.3 == 0)
-                 _0x5E:
-0000f4 9b33      	SBIS 0x6,3
-                 ; 0000 00B7                                     prev  = 1;
-0000f5 d0ff      	RCALL SUBOPT_0x6
-                 ; 0000 00B8 
-                 ; 0000 00B9                                 if(PINC.4 == 0)
-0000f6 9b34      	SBIS 0x6,4
-                 ; 0000 00BA                                     curre = 1;
-0000f7 d112      	RCALL SUBOPT_0x9
-                 ; 0000 00BB 
-                 ; 0000 00BC 
-                 ; 0000 00BD                                 if(prev == 1 && curre == 1 && PINC.2 == 0){
-0000f8 d116      	RCALL SUBOPT_0xA
-0000f9 f421      	BRNE _0x6B
-0000fa d119      	RCALL SUBOPT_0xB
-0000fb f411      	BRNE _0x6B
-0000fc 9b32      	SBIS 0x6,2
-0000fd c001      	RJMP _0x6C
-                 _0x6B:
-0000fe c002      	RJMP _0x6A
-                 _0x6C:
-                 ; 0000 00BE                                     entry=1;
-0000ff d119      	RCALL SUBOPT_0xC
-                 ; 0000 00BF                                     prev = 0;
-                 ; 0000 00C0                                     curre = 0;
-                 ; 0000 00C1                                     break;
-000100 c001      	RJMP _0x5D
-                 ; 0000 00C2                                 }
-                 ; 0000 00C3                             }
-                 _0x6A:
-000101 cfe3      	RJMP _0x5B
-                 _0x5D:
-                 ; 0000 00C4                            TCCR1B=0;       //Apagar timer
-000102 d124      	RCALL SUBOPT_0xE
-                 ; 0000 00C5                            numpasos=0;
-                 ; 0000 00C6                         }
-                 ; 0000 00C7                     }
+0000bd 9933      	SBIC 0x6,3
+0000be c002      	RJMP _0x59
+                 ; 0000 006E                                     PORTC.5 = 1; //Activa martillo
+0000bf d161      	RCALL SUBOPT_0x1
+                 ; 0000 006F                                     delay_ms (200);
+                 ; 0000 0070                                     PORTC.5 = 0; //Desactiva martillo
+                 ; 0000 0071                                }
+0000c0 cffc      	RJMP _0x57
+                 _0x59:
+                 ; 0000 0072 
+                 ; 0000 0073                         }
                  _0x56:
-                 _0x54:
-                 ; 0000 00C8 
-                 ; 0000 00C9                }
-000103 cf7e      	RJMP _0x17
-                 _0x19:
-                 ; 0000 00CA               while (PIND.2 == 0){ //Mientras señal de pulso activada
+                 ; 0000 0074                     }
+                 ; 0000 0075                      if (PIND.7 == 0){//MODO MULTIPULSO
+                 _0x50:
+0000c1 994f      	SBIC 0x9,7
+0000c2 c057      	RJMP _0x5E
+                 ; 0000 0076 
+                 ; 0000 0077                         if(PIND.2 == 1)
+0000c3 994a      	SBIC 0x9,2
+                 ; 0000 0078                            validation = 1;
+0000c4 d162      	RCALL SUBOPT_0x2
+                 ; 0000 0079                         if(PIND.2 == 0 && validation == 1){ // Señal de paso
+0000c5 994a      	SBIC 0x9,2
+0000c6 c002      	RJMP _0x61
+0000c7 d164      	RCALL SUBOPT_0x3
+0000c8 f009      	BREQ _0x62
+                 _0x61:
+0000c9 c04f      	RJMP _0x60
+                 _0x62:
+                 ; 0000 007A                            validation = 0;
+0000ca d166      	RCALL SUBOPT_0x4
+                 ; 0000 007B                            numpasos++;
+                 ; 0000 007C                            contadorLED(numpasos);
+                 ; 0000 007D 
+                 ; 0000 007E 
+                 ; 0000 007F 
+                 ; 0000 0080                           //DEFINICION DE RELOJ a 5s
+                 ; 0000 0081                            TCCR1B= 0x05; //Enciende timer 1 en modo normal con prescalador CK/1024
+0000cb e0e5      	LDI  R30,LOW(5)
+0000cc 93e0 0081 	STS  129,R30
+                 ; 0000 0082 
+                 ; 0000 0083                            while(TIFR1.TOV1==0){ //Mientras la bandera de overflow no sea 1
+                 _0x63:
+0000ce 99b0      	SBIC 0x16,0
+0000cf c014      	RJMP _0x65
+                 ; 0000 0084 
+                 ; 0000 0085 
+                 ; 0000 0086                              if(numpasos == 5)
+0000d0 d169      	RCALL SUBOPT_0x5
+0000d1 f091      	BREQ _0x65
+                 ; 0000 0087                                 break;
+                 ; 0000 0088 
+                 ; 0000 0089                              if(PINC.2 == 1 && PINC.3 == 0){
+0000d2 9b32      	SBIS 0x6,2
+0000d3 c002      	RJMP _0x68
+0000d4 9b33      	SBIS 0x6,3
+0000d5 c001      	RJMP _0x69
+                 _0x68:
+0000d6 c002      	RJMP _0x67
+                 _0x69:
+                 ; 0000 008A                                 prev = 1;
+0000d7 d167      	RCALL SUBOPT_0x6
+                 ; 0000 008B                                 break;
+0000d8 c00b      	RJMP _0x65
+                 ; 0000 008C                              }
+                 ; 0000 008D 
+                 ; 0000 008E                              if(PIND.2 == 1) // Señal de paso
+                 _0x67:
+0000d9 994a      	SBIC 0x9,2
+                 ; 0000 008F                                 validation = 1;
+0000da d14c      	RCALL SUBOPT_0x2
+                 ; 0000 0090                              if(PIND.2 == 0 && validation == 1){ // Señal de paso
+0000db 994a      	SBIC 0x9,2
+0000dc c002      	RJMP _0x6C
+0000dd d14e      	RCALL SUBOPT_0x3
+0000de f009      	BREQ _0x6D
+                 _0x6C:
+0000df c003      	RJMP _0x6B
                  _0x6D:
-000104 994a      	SBIC 0x9,2
-000105 c01c      	RJMP _0x6F
-                 ; 0000 00CB 
-                 ; 0000 00CC                    if(PINC.2 == 1 && PINC.4 == 0 && prev == 0 && PIND.6 == 0){ // Para evitar que haga sentido opuesto
-000106 9b32      	SBIS 0x6,2
-000107 c008      	RJMP _0x71
-000108 9934      	SBIC 0x6,4
-000109 c006      	RJMP _0x71
-00010a 2400      	CLR  R0
-00010b 1405      	CP   R0,R5
-00010c 0406      	CPC  R0,R6
-00010d f411      	BRNE _0x71
-00010e 9b4e      	SBIS 0x9,6
-00010f c001      	RJMP _0x72
+                 ; 0000 0091                                validation = 0;
+0000e0 d150      	RCALL SUBOPT_0x4
+                 ; 0000 0092                                numpasos++;
+                 ; 0000 0093                                contadorLED(numpasos);
+                 ; 0000 0094                                TIFR1.TOV1=1;//Resetea la bandera de overflow
+0000e1 9ab0      	SBI  0x16,0
+                 ; 0000 0095                                TCNT1H= 0xEC; //Contador 65536 -60653  inicia en 60653 para contar 4883 veces , .001024 s ...
+0000e2 d137      	RCALL SUBOPT_0x0
+                 ; 0000 0096                                TCNT1L= 0xED; //Se pone 60653 dividido en los 8MSB para TCNT1H y los 8LSB para TCNT1L
+                 ; 0000 0097                              }
+                 ; 0000 0098                            }
+                 _0x6B:
+0000e3 cfea      	RJMP _0x63
+                 _0x65:
+                 ; 0000 0099                            TCCR1B=0;       //Apagar timer 1
+0000e4 d15f      	RCALL SUBOPT_0x7
+                 ; 0000 009A 
+                 ; 0000 009B                            pasosLED = numpasos;
+                 ; 0000 009C 
+                 ; 0000 009D                            for (i=0;i<numpasos;i++){
                  _0x71:
-000110 c004      	RJMP _0x70
-                 _0x72:
-                 ; 0000 00CD                             while(PINC.4 == 0){//Mientras esté intentando entrar activa martillo
-                 _0x73:
-000111 9934      	SBIC 0x6,4
-000112 c002      	RJMP _0x75
-                 ; 0000 00CE                                 PORTC.5 = 1; //Activa martillo
-000113 d0c5      	RCALL SUBOPT_0x1
-                 ; 0000 00CF                                 delay_ms (200);
-                 ; 0000 00D0                                 PORTC.5 = 0; //Desactiva martillo
-                 ; 0000 00D1                             }
-000114 cffc      	RJMP _0x73
-                 _0x75:
-                 ; 0000 00D2                    }
-                 ; 0000 00D3 
-                 ; 0000 00D4                    if(PINC.3 == 0)
-                 _0x70:
-000115 9b33      	SBIS 0x6,3
-                 ; 0000 00D5                       prev  = 1;
-000116 d0de      	RCALL SUBOPT_0x6
-                 ; 0000 00D6 
-                 ; 0000 00D7                    if(PINC.4 == 0)
-000117 9b34      	SBIS 0x6,4
-                 ; 0000 00D8                       curre = 1;
-000118 d0f1      	RCALL SUBOPT_0x9
-                 ; 0000 00D9 
-                 ; 0000 00DA 
-                 ; 0000 00DB                    if(prev == 1 && curre == 1 && PINC.2 == 0){
-000119 d0f5      	RCALL SUBOPT_0xA
-00011a f421      	BRNE _0x7D
-00011b d0f8      	RCALL SUBOPT_0xB
-00011c f411      	BRNE _0x7D
-00011d 9b32      	SBIS 0x6,2
-00011e c001      	RJMP _0x7E
-                 _0x7D:
-00011f c001      	RJMP _0x7C
-                 _0x7E:
-                 ; 0000 00DC                       prev = 0;
-000120 d113      	RCALL SUBOPT_0x10
-                 ; 0000 00DD                       curre = 0;
-                 ; 0000 00DE                   }
-                 ; 0000 00DF               }
-                 _0x7C:
-000121 cfe2      	RJMP _0x6D
-                 _0x6F:
-                 ; 0000 00E0 
-                 ; 0000 00E1         }
-000122 cf53      	RJMP _0x6
-                 _0x8:
-                 ; 0000 00E2 
-                 ; 0000 00E3        while (PIND.4 == 1){ //PASO SENTIDO IZQUIERDO
-                 _0x7F:
-000123 9b4c      	SBIS 0x9,4
-000124 c0ab      	RJMP _0x81
-                 ; 0000 00E4          if (PINC.2 != 0){//Microswitch reposo //salio de reposo
-000125 9b32      	SBIS 0x6,2
-000126 c008      	RJMP _0x82
-                 ; 0000 00E5                         if(PIND.6 == 0){//Bloqueo de salida activado o también el de entrada
-000127 994e      	SBIC 0x9,6
-000128 c002      	RJMP _0x83
-                 ; 0000 00E6                               PORTC.5 = 1; //Activa martillo
-000129 d0af      	RCALL SUBOPT_0x1
-                 ; 0000 00E7                               delay_ms (200);
-                 ; 0000 00E8                               PORTC.5 = 0; //Desactiva martillo
-                 ; 0000 00E9                         }
-                 ; 0000 00EA                         else{
-00012a c004      	RJMP _0x88
-                 _0x83:
-                 ; 0000 00EB                                while(PINC.4 == 0){//Mientras esté intentando entrar activa martillo
-                 _0x89:
-00012b 9934      	SBIC 0x6,4
-00012c c002      	RJMP _0x8B
-                 ; 0000 00EC                                     PORTC.5 = 1; //Activa martillo
-00012d d0ab      	RCALL SUBOPT_0x1
-                 ; 0000 00ED                                     delay_ms (200);
-                 ; 0000 00EE                                     PORTC.5 = 0; //Desactiva martillo
-                 ; 0000 00EF                                }
-00012e cffc      	RJMP _0x89
-                 _0x8B:
-                 ; 0000 00F0 
-                 ; 0000 00F1                         }
-                 _0x88:
-                 ; 0000 00F2                     }
-                 ; 0000 00F3                while(PIND.5 == 1 && PIND.4 == 1){//Pulso continuo no activo y Paso sentido izquierdo
-                 _0x82:
-                 _0x90:
-00012f 9b4d      	SBIS 0x9,5
-000130 c002      	RJMP _0x93
-000131 994c      	SBIC 0x9,4
-000132 c001      	RJMP _0x94
-                 _0x93:
-000133 c07d      	RJMP _0x92
-                 _0x94:
-                 ; 0000 00F4                     if (PINC.2 != 0){//Microswitch reposo salio de reposo
-000134 9b32      	SBIS 0x6,2
-000135 c008      	RJMP _0x95
-                 ; 0000 00F5                         if(PIND.6 == 0){//Bloqueo de salida activado o también el de entrada
-000136 994e      	SBIC 0x9,6
-000137 c002      	RJMP _0x96
-                 ; 0000 00F6                               PORTC.5 = 1; //Activa martillo
-000138 d0a0      	RCALL SUBOPT_0x1
-                 ; 0000 00F7                               delay_ms (200);
-                 ; 0000 00F8                               PORTC.5 = 0; //Desactiva martillo
-                 ; 0000 00F9                         }
-                 ; 0000 00FA                         else{
-000139 c004      	RJMP _0x9B
-                 _0x96:
-                 ; 0000 00FB                                while(PINC.4 == 0){//Mientras esté intentando entrar activa martillo
-                 _0x9C:
-00013a 9934      	SBIC 0x6,4
-00013b c002      	RJMP _0x9E
-                 ; 0000 00FC                                     PORTC.5 = 1; //Activa martillo
-00013c d09c      	RCALL SUBOPT_0x1
-                 ; 0000 00FD                                     delay_ms (200);
-                 ; 0000 00FE                                     PORTC.5 = 0; //Desactiva martillo
-                 ; 0000 00FF                                }
-00013d cffc      	RJMP _0x9C
-                 _0x9E:
-                 ; 0000 0100 
-                 ; 0000 0101                         }
-                 _0x9B:
-                 ; 0000 0102                     }
-                 ; 0000 0103                      if (PIND.7 == 0){//MODO MULTIPULSO
-                 _0x95:
-00013e 994f      	SBIC 0x9,7
-00013f c04a      	RJMP _0xA3
-                 ; 0000 0104 
-                 ; 0000 0105                         if(PIND.2 == 1)
-000140 994a      	SBIC 0x9,2
-                 ; 0000 0106                            validation = 1;
-000141 d09d      	RCALL SUBOPT_0x2
-                 ; 0000 0107                         if(PIND.2 == 0 && validation == 1){ // Señal de paso
-000142 994a      	SBIC 0x9,2
-000143 c002      	RJMP _0xA6
-000144 d09f      	RCALL SUBOPT_0x3
-000145 f009      	BREQ _0xA7
-                 _0xA6:
-000146 c042      	RJMP _0xA5
-                 _0xA7:
-                 ; 0000 0108                            validation = 0;
-000147 d0a1      	RCALL SUBOPT_0x4
-                 ; 0000 0109                            numpasos++;
-                 ; 0000 010A 
-                 ; 0000 010B 
-                 ; 0000 010C                           //DEFINICION DE RELOJ a 5s
-                 ; 0000 010D                            TCCR1B= 0x05; //Enciende timer 1 en modo normal con prescalador CK/1024
-000148 e0e5      	LDI  R30,LOW(5)
-000149 93e0 0081 	STS  129,R30
-                 ; 0000 010E 
-                 ; 0000 010F                            while(TIFR1.TOV1==0){ //Mientras la bandera de overflow no sea 1
-                 _0xA8:
-00014b 99b0      	SBIC 0x16,0
-00014c c014      	RJMP _0xAA
-                 ; 0000 0110                              if(PIND.2 == 1) // Señal de paso
-00014d 994a      	SBIC 0x9,2
-                 ; 0000 0111                                 validation = 1;
-00014e d090      	RCALL SUBOPT_0x2
-                 ; 0000 0112 
-                 ; 0000 0113                              if(numpasos == 5)
-00014f d0a0      	RCALL SUBOPT_0x5
-000150 f081      	BREQ _0xAA
-                 ; 0000 0114                                 break;
-                 ; 0000 0115 
-                 ; 0000 0116                              if(PINC.2 == 1 && PINC.4 == 0){
-000151 9b32      	SBIS 0x6,2
-000152 c002      	RJMP _0xAE
-000153 9b34      	SBIS 0x6,4
-000154 c001      	RJMP _0xAF
-                 _0xAE:
-000155 c002      	RJMP _0xAD
-                 _0xAF:
-                 ; 0000 0117                                 prev = 1;
-000156 d09e      	RCALL SUBOPT_0x6
-                 ; 0000 0118                                 break;
-000157 c009      	RJMP _0xAA
-                 ; 0000 0119                              }
-                 ; 0000 011A 
-                 ; 0000 011B                              if(PIND.2 == 0 && validation == 1){ // Señal de paso
-                 _0xAD:
-000158 994a      	SBIC 0x9,2
-000159 c002      	RJMP _0xB1
-00015a d089      	RCALL SUBOPT_0x3
-00015b f009      	BREQ _0xB2
-                 _0xB1:
-00015c c003      	RJMP _0xB0
-                 _0xB2:
-                 ; 0000 011C                                validation = 0;
-00015d d08b      	RCALL SUBOPT_0x4
-                 ; 0000 011D                                numpasos++;
-                 ; 0000 011E                                TIFR1.TOV1=1;//Resetea la bandera de overflow
-00015e 9ab0      	SBI  0x16,0
-                 ; 0000 011F                                TCNT1H= 0xEC; //Contador 65536 -60653  inicia en 60653 para contar 4883 veces , .001024 s ...
-00015f d072      	RCALL SUBOPT_0x0
-                 ; 0000 0120                                TCNT1L= 0xED; //Se pone 60653 dividido en los 8MSB para TCNT1H y los 8LSB para TCNT1L
-                 ; 0000 0121                              }
-                 ; 0000 0122                            }
-                 _0xB0:
-000160 cfea      	RJMP _0xA8
-                 _0xAA:
-                 ; 0000 0123                            TCCR1B=0;       //Apagar timer
-000161 d098      	RCALL SUBOPT_0x7
-                 ; 0000 0124 
-                 ; 0000 0125 
-                 ; 0000 0126                            for (i=0;i<numpasos;i++){
-                 _0xB6:
                 +
-000162 14b3     +CP R11 , R3
-000163 04c4     +CPC R12 , R4
+0000e5 14b3     +CP R11 , R3
+0000e6 04c4     +CPC R12 , R4
                  	__CPWRR 11,12,3,4
-000164 f518      	BRSH _0xB7
-                 ; 0000 0127                                  TIFR1.TOV1=1;//Resetea la bandera de overflow
-000165 d09a      	RCALL SUBOPT_0x8
-                 ; 0000 0128                                  TCCR1B= 0x05; //Enciende timer 1 en modo normal con prescalador CK/1024
-                 ; 0000 0129                                  TCNT1H= 0xD9; //Contador 65536 - 55769 inicia en 55769 para contar 9767 veces , .001024 ...
-                 ; 0000 012A                                  TCNT1L= 0xD9; //Se pone 55769 dividido en los 8MSB para TCNT1H y los 8LSB para TCNT1L
-                 ; 0000 012B                                 //TIENE 10 s para pasar
-                 ; 0000 012C                                 while(TIFR1.TOV1==0){//mientras la bandera de overflow no sea 1
-                 _0xBA:
-000166 99b0      	SBIC 0x16,0
-000167 c01b      	RJMP _0xBC
-                 ; 0000 012D                                     if(PINC.2 == 1 && PINC.3 == 0 && prev == 0){ // Para evitar que haga sentido opuesto
-000168 9b32      	SBIS 0x6,2
-000169 c006      	RJMP _0xBE
-00016a 9933      	SBIC 0x6,3
-00016b c004      	RJMP _0xBE
-00016c 2400      	CLR  R0
-00016d 1405      	CP   R0,R5
-00016e 0406      	CPC  R0,R6
-00016f f009      	BREQ _0xBF
-                 _0xBE:
-000170 c004      	RJMP _0xBD
-                 _0xBF:
-                 ; 0000 012E                                        while(PINC.3 == 0){//Mientras esté intentando entrar activa martillo
-                 _0xC0:
-000171 9933      	SBIC 0x6,3
-000172 c002      	RJMP _0xC2
-                 ; 0000 012F                                             PORTC.5 = 1; //Activa martillo
-000173 d065      	RCALL SUBOPT_0x1
-                 ; 0000 0130                                             delay_ms (200);
-                 ; 0000 0131                                             PORTC.5 = 0; //Desactiva martillo
-                 ; 0000 0132                                        }
-000174 cffc      	RJMP _0xC0
-                 _0xC2:
-                 ; 0000 0133                                     }
-                 ; 0000 0134 
-                 ; 0000 0135                                     if(PINC.4 == 0)
-                 _0xBD:
-000175 9b34      	SBIS 0x6,4
-                 ; 0000 0136                                         prev  = 1;
-000176 d07e      	RCALL SUBOPT_0x6
-                 ; 0000 0137 
-                 ; 0000 0138                                     if(PINC.3 == 0)
-000177 9b33      	SBIS 0x6,3
-                 ; 0000 0139                                         curre = 1;
-000178 d091      	RCALL SUBOPT_0x9
-                 ; 0000 013A 
-                 ; 0000 013B                                     if(prev == 1 && curre == 1 && PINC.2 == 0){
-000179 d095      	RCALL SUBOPT_0xA
-00017a f421      	BRNE _0xCA
-00017b d098      	RCALL SUBOPT_0xB
-00017c f411      	BRNE _0xCA
-00017d 9b32      	SBIS 0x6,2
-00017e c001      	RJMP _0xCB
-                 _0xCA:
-00017f c002      	RJMP _0xC9
-                 _0xCB:
-                 ; 0000 013C                                        entry=1;
-000180 d098      	RCALL SUBOPT_0xC
-                 ; 0000 013D                                        prev = 0;
-                 ; 0000 013E                                        curre = 0;
-                 ; 0000 013F                                        break;
-000181 c001      	RJMP _0xBC
-                 ; 0000 0140                                     }
-                 ; 0000 0141                                 }
-                 _0xC9:
-000182 cfe3      	RJMP _0xBA
-                 _0xBC:
-                 ; 0000 0142 
-                 ; 0000 0143                                 if(entry == 0){ //Checa la bandera de si el usuario pasó
-000183 2c09      	MOV  R0,R9
-000184 280a      	OR   R0,R10
-000185 f011      	BREQ _0xB7
-                 ; 0000 0144                                     break;
-                 ; 0000 0145                                 }
-                 ; 0000 0146                            }
-000186 d09b      	RCALL SUBOPT_0xD
-000187 cfda      	RJMP _0xB6
-                 _0xB7:
-                 ; 0000 0147                            TCCR1B=0;       //Apagar timer
-000188 d09e      	RCALL SUBOPT_0xE
-                 ; 0000 0148                            numpasos=0;
-                 ; 0000 0149                          }
-                 ; 0000 014A                        }
-                 _0xA5:
-                 ; 0000 014B                     else{
-000189 c026      	RJMP _0xCD
-                 _0xA3:
-                 ; 0000 014C                          if(PIND.2 == 1)
-00018a 994a      	SBIC 0x9,2
-                 ; 0000 014D                            validation = 1;
-00018b d053      	RCALL SUBOPT_0x2
-                 ; 0000 014E                          if(PIND.2 == 0 && validation == 1){ // Señal de paso
-00018c 994a      	SBIC 0x9,2
-00018d c002      	RJMP _0xD0
-00018e d055      	RCALL SUBOPT_0x3
-00018f f009      	BREQ _0xD1
-                 _0xD0:
-000190 c01f      	RJMP _0xCF
-                 _0xD1:
-                 ; 0000 014F                            validation = 0;
-000191 d09b      	RCALL SUBOPT_0xF
-                 ; 0000 0150                            numpasos = 1;
-                 ; 0000 0151 
-                 ; 0000 0152                              TIFR1.TOV1=1;//Resetea la bandera de overflow
-                 ; 0000 0153                              TCCR1B= 0x05; //Enciende timer 1 en modo normal con prescalador CK/1024
-                 ; 0000 0154                              TCNT1H= 0xD9; //Contador 65536 - 55769 inicia en 55769 para contar 9767 veces , .001024 seg ...
-                 ; 0000 0155                              TCNT1L= 0xD9; //Se pone 55769 dividido en los 8MSB para TCNT1H y los 8LSB para TCNT1L
-                 ; 0000 0156                             //TIENE 10 s para pasar
-                 ; 0000 0157                              while(TIFR1.TOV1==0){//mientras la bandera de overflow no sea 1
-                 _0xD4:
-000192 99b0      	SBIC 0x16,0
-000193 c01b      	RJMP _0xD6
-                 ; 0000 0158                                 if(PINC.2 == 1 && PINC.3 == 0 && prev == 0){ // Para evitar que haga sentido opuesto
-000194 9b32      	SBIS 0x6,2
-000195 c006      	RJMP _0xD8
-000196 9933      	SBIC 0x6,3
-000197 c004      	RJMP _0xD8
-000198 2400      	CLR  R0
-000199 1405      	CP   R0,R5
-00019a 0406      	CPC  R0,R6
-00019b f009      	BREQ _0xD9
-                 _0xD8:
-00019c c004      	RJMP _0xD7
-                 _0xD9:
-                 ; 0000 0159                                    while(PINC.3 == 0){//Mientras esté intentando entrar activa martillo
-                 _0xDA:
-00019d 9933      	SBIC 0x6,3
-00019e c002      	RJMP _0xDC
-                 ; 0000 015A                                         PORTC.5 = 1; //Activa martillo
-00019f d039      	RCALL SUBOPT_0x1
-                 ; 0000 015B                                         delay_ms (200);
-                 ; 0000 015C                                         PORTC.5 = 0; //Desactiva martillo
-                 ; 0000 015D                                    }
-0001a0 cffc      	RJMP _0xDA
-                 _0xDC:
-                 ; 0000 015E                                 }
-                 ; 0000 015F 
-                 ; 0000 0160                                 if(PINC.4 == 0)
-                 _0xD7:
-0001a1 9b34      	SBIS 0x6,4
-                 ; 0000 0161                                     prev  = 1;
-0001a2 d052      	RCALL SUBOPT_0x6
-                 ; 0000 0162 
-                 ; 0000 0163                                 if(PINC.3 == 0)
-0001a3 9b33      	SBIS 0x6,3
-                 ; 0000 0164                                     curre = 1;
-0001a4 d065      	RCALL SUBOPT_0x9
-                 ; 0000 0165 
-                 ; 0000 0166 
-                 ; 0000 0167                                 if(prev == 1 && curre == 1 && PINC.2 == 0){
-0001a5 d069      	RCALL SUBOPT_0xA
-0001a6 f421      	BRNE _0xE4
-0001a7 d06c      	RCALL SUBOPT_0xB
-0001a8 f411      	BRNE _0xE4
-0001a9 9b32      	SBIS 0x6,2
-0001aa c001      	RJMP _0xE5
-                 _0xE4:
-0001ab c002      	RJMP _0xE3
-                 _0xE5:
-                 ; 0000 0168                                    entry=1;
-0001ac d06c      	RCALL SUBOPT_0xC
-                 ; 0000 0169                                    prev = 0;
-                 ; 0000 016A                                    curre = 0;
-                 ; 0000 016B                                    break;
-0001ad c001      	RJMP _0xD6
-                 ; 0000 016C                                 }
-                 ; 0000 016D                             }
-                 _0xE3:
-0001ae cfe3      	RJMP _0xD4
-                 _0xD6:
-                 ; 0000 016E 
-                 ; 0000 016F                            TCCR1B=0;       //Apagar timer
-0001af d077      	RCALL SUBOPT_0xE
-                 ; 0000 0170                            numpasos=0;
-                 ; 0000 0171                         }
-                 ; 0000 0172                     }
-                 _0xCF:
-                 _0xCD:
-                 ; 0000 0173 
-                 ; 0000 0174                }
-0001b0 cf7e      	RJMP _0x90
+0000e7 f578      	BRSH _0x72
+                 ; 0000 009E                                  TIFR1.TOV1=1;//Resetea la bandera de overflow
+0000e8 d165      	RCALL SUBOPT_0x8
+                 ; 0000 009F                                  TCCR1B= 0x05; //Enciende timer 1 en modo normal con prescalador CK/1024
+                 ; 0000 00A0                                  TCNT1H= 0xD9; //Contador 65536 - 55769 inicia en 55769 para contar 9767 veces , .001024 ...
+                 ; 0000 00A1                                  TCNT1L= 0xD9; //Se pone 55769 dividido en los 8MSB para TCNT1H y los 8LSB para TCNT1L
+                 ; 0000 00A2                                 //TIENE 10 s para pasar
+                 ; 0000 00A3                                 while(TIFR1.TOV1==0){//mientras la bandera de overflow no sea 1
+                 _0x75:
+0000e9 99b0      	SBIC 0x16,0
+0000ea c027      	RJMP _0x77
+                 ; 0000 00A4                                     if(PINC.2 == 1 && PINC.4 == 0 && prev == 0){ // Para evitar que haga sentido opuesto
+0000eb 9b32      	SBIS 0x6,2
+0000ec c006      	RJMP _0x79
+0000ed 9934      	SBIC 0x6,4
+0000ee c004      	RJMP _0x79
+0000ef 2400      	CLR  R0
+0000f0 1405      	CP   R0,R5
+0000f1 0406      	CPC  R0,R6
+0000f2 f009      	BREQ _0x7A
+                 _0x79:
+0000f3 c004      	RJMP _0x78
+                 _0x7A:
+                 ; 0000 00A5                                        while(PINC.4 == 0){//Mientras esté intentando entrar activa martillo
+                 _0x7B:
+0000f4 9934      	SBIC 0x6,4
+0000f5 c002      	RJMP _0x7D
+                 ; 0000 00A6                                             PORTC.5 = 1; //Activa martillo
+0000f6 d12a      	RCALL SUBOPT_0x1
+                 ; 0000 00A7                                             delay_ms (200);
+                 ; 0000 00A8                                             PORTC.5 = 0; //Desactiva martillo
+                 ; 0000 00A9                                        }
+0000f7 cffc      	RJMP _0x7B
+                 _0x7D:
+                 ; 0000 00AA                                     }
+                 ; 0000 00AB 
+                 ; 0000 00AC                                     if(PINC.3 == 0)
+                 _0x78:
+0000f8 9b33      	SBIS 0x6,3
+                 ; 0000 00AD                                         prev  = 1;
+0000f9 d145      	RCALL SUBOPT_0x6
+                 ; 0000 00AE 
+                 ; 0000 00AF                                     if(PINC.4 == 0)
+0000fa 9b34      	SBIS 0x6,4
+                 ; 0000 00B0                                         curre = 1;
+0000fb d15c      	RCALL SUBOPT_0x9
+                 ; 0000 00B1 
+                 ; 0000 00B2                                     if(prev == 1 && curre == 1 && PINC.2 == 0){
+0000fc d160      	RCALL SUBOPT_0xA
+0000fd f421      	BRNE _0x85
+0000fe d163      	RCALL SUBOPT_0xB
+0000ff f411      	BRNE _0x85
+000100 9b32      	SBIS 0x6,2
+000101 c001      	RJMP _0x86
+                 _0x85:
+000102 c00e      	RJMP _0x84
+                 _0x86:
+                 ; 0000 00B3                                        entry=1;
+000103 d163      	RCALL SUBOPT_0xC
+                 ; 0000 00B4                                        prev = 0;
+                 ; 0000 00B5                                        curre = 0;
+                 ; 0000 00B6                                        pasosLED--;
+000104 e0a0      	LDI  R26,LOW(_pasosLED)
+000105 e0b3      	LDI  R27,HIGH(_pasosLED)
+000106 91ed      	LD   R30,X+
+000107 91fd      	LD   R31,X+
+000108 9731      	SBIW R30,1
+000109 93fe      	ST   -X,R31
+00010a 93ee      	ST   -X,R30
+                 ; 0000 00B7                                        contadorLED(pasosLED);
+00010b 91a0 0300 	LDS  R26,_pasosLED
+00010d 91b0 0301 	LDS  R27,_pasosLED+1
+00010f df5d      	RCALL _contadorLED
+                 ; 0000 00B8                                        break;
+000110 c001      	RJMP _0x77
+                 ; 0000 00B9                                     }
+                 ; 0000 00BA                                 }
+                 _0x84:
+000111 cfd7      	RJMP _0x75
+                 _0x77:
+                 ; 0000 00BB 
+                 ; 0000 00BC                                 if(entry == 0){ //Checa la bandera de si el usuario pasó
+000112 2c09      	MOV  R0,R9
+000113 280a      	OR   R0,R10
+000114 f011      	BREQ _0x72
+                 ; 0000 00BD                                     break;
+                 ; 0000 00BE                                 }
+                 ; 0000 00BF                            }
+000115 d15a      	RCALL SUBOPT_0xD
+000116 cfce      	RJMP _0x71
+                 _0x72:
+                 ; 0000 00C0                            TCCR1B=0;       //Apagar timer
+000117 d15d      	RCALL SUBOPT_0xE
+                 ; 0000 00C1                            numpasos=0;
+                 ; 0000 00C2                            pasosLED = 0;
+000118 d162      	RCALL SUBOPT_0xF
+                 ; 0000 00C3                            contadorLED(numpasos);
+                 ; 0000 00C4                          }
+                 ; 0000 00C5                        }
+                 _0x60:
+                 ; 0000 00C6                     else{
+000119 c029      	RJMP _0x88
+                 _0x5E:
+                 ; 0000 00C7                          if(PIND.2 == 1)
+00011a 994a      	SBIC 0x9,2
+                 ; 0000 00C8                            validation = 1;
+00011b d10b      	RCALL SUBOPT_0x2
+                 ; 0000 00C9                          if(PIND.2 == 0 && validation == 1){ // Señal de paso
+00011c 994a      	SBIC 0x9,2
+00011d c002      	RJMP _0x8B
+00011e d10d      	RCALL SUBOPT_0x3
+00011f f009      	BREQ _0x8C
+                 _0x8B:
+000120 c022      	RJMP _0x8A
+                 _0x8C:
+                 ; 0000 00CA                            validation = 0;
+000121 d161      	RCALL SUBOPT_0x10
+                 ; 0000 00CB                            numpasos = 1;
+                 ; 0000 00CC                            contadorLED(numpasos);
+                 ; 0000 00CD 
+                 ; 0000 00CE 
+                 ; 0000 00CF                              TIFR1.TOV1=1;//Resetea la bandera de overflow
+                 ; 0000 00D0                              TCCR1B= 0x05; //Enciende timer 1 en modo normal con prescalador CK/1024
+                 ; 0000 00D1                              TCNT1H= 0xD9; //Contador 65536 - 55769 inicia en 55769 para contar 9767 veces , .001024 seg ...
+                 ; 0000 00D2                              TCNT1L= 0xD9; //Se pone 55769 dividido en los 8MSB para TCNT1H y los 8LSB para TCNT1L
+                 ; 0000 00D3                             //TIENE 10 s para pasar
+                 ; 0000 00D4                              while(TIFR1.TOV1==0){//mientras la bandera de overflow no sea 1
+                 _0x8F:
+000122 99b0      	SBIC 0x16,0
+000123 c01b      	RJMP _0x91
+                 ; 0000 00D5                                 if(PINC.2 == 1 && PINC.4 == 0 && prev == 0){ // Para evitar que haga sentido opuesto
+000124 9b32      	SBIS 0x6,2
+000125 c006      	RJMP _0x93
+000126 9934      	SBIC 0x6,4
+000127 c004      	RJMP _0x93
+000128 2400      	CLR  R0
+000129 1405      	CP   R0,R5
+00012a 0406      	CPC  R0,R6
+00012b f009      	BREQ _0x94
+                 _0x93:
+00012c c004      	RJMP _0x92
+                 _0x94:
+                 ; 0000 00D6                                    while(PINC.4 == 0){//Mientras esté intentando entrar activa martillo
+                 _0x95:
+00012d 9934      	SBIC 0x6,4
+00012e c002      	RJMP _0x97
+                 ; 0000 00D7                                         PORTC.5 = 1; //Activa martillo
+00012f d0f1      	RCALL SUBOPT_0x1
+                 ; 0000 00D8                                         delay_ms (200);
+                 ; 0000 00D9                                         PORTC.5 = 0; //Desactiva martillo
+                 ; 0000 00DA                                    }
+000130 cffc      	RJMP _0x95
+                 _0x97:
+                 ; 0000 00DB                                 }
+                 ; 0000 00DC 
+                 ; 0000 00DD                                 if(PINC.3 == 0)
                  _0x92:
-                 ; 0000 0175               while (PIND.2==0){ //Mientras señal de pulso activada
+000131 9b33      	SBIS 0x6,3
+                 ; 0000 00DE                                     prev  = 1;
+000132 d10c      	RCALL SUBOPT_0x6
+                 ; 0000 00DF 
+                 ; 0000 00E0                                 if(PINC.4 == 0)
+000133 9b34      	SBIS 0x6,4
+                 ; 0000 00E1                                     curre = 1;
+000134 d123      	RCALL SUBOPT_0x9
+                 ; 0000 00E2 
+                 ; 0000 00E3 
+                 ; 0000 00E4                                 if(prev == 1 && curre == 1 && PINC.2 == 0){
+000135 d127      	RCALL SUBOPT_0xA
+000136 f421      	BRNE _0x9F
+000137 d12a      	RCALL SUBOPT_0xB
+000138 f411      	BRNE _0x9F
+000139 9b32      	SBIS 0x6,2
+00013a c001      	RJMP _0xA0
+                 _0x9F:
+00013b c002      	RJMP _0x9E
+                 _0xA0:
+                 ; 0000 00E5                                     entry=1;
+00013c d12a      	RCALL SUBOPT_0xC
+                 ; 0000 00E6                                     prev = 0;
+                 ; 0000 00E7                                     curre = 0;
+                 ; 0000 00E8                                     break;
+00013d c001      	RJMP _0x91
+                 ; 0000 00E9                                 }
+                 ; 0000 00EA                             }
+                 _0x9E:
+00013e cfe3      	RJMP _0x8F
+                 _0x91:
+                 ; 0000 00EB                            TCCR1B=0;       //Apagar timer
+00013f d135      	RCALL SUBOPT_0xE
+                 ; 0000 00EC                            numpasos=0;
+                 ; 0000 00ED                            contadorLED(numpasos);
+                +
+000140 2da3     +MOV R26 , R3
+000141 2db4     +MOV R27 , R4
+                 	__GETW2R 3,4
+000142 df2a      	RCALL _contadorLED
+                 ; 0000 00EE                         }
+                 ; 0000 00EF                     }
+                 _0x8A:
+                 _0x88:
+                 ; 0000 00F0 
+                 ; 0000 00F1                }
+000143 cf6e      	RJMP _0x4B
+                 _0x4D:
+                 ; 0000 00F2               while (PIND.2 == 0){ //Mientras señal de pulso activada
+                 _0xA1:
+000144 994a      	SBIC 0x9,2
+000145 c01c      	RJMP _0xA3
+                 ; 0000 00F3 
+                 ; 0000 00F4                    if(PINC.2 == 1 && PINC.4 == 0 && prev == 0 && PIND.6 == 0){ // Para evitar que haga sentido opuesto
+000146 9b32      	SBIS 0x6,2
+000147 c008      	RJMP _0xA5
+000148 9934      	SBIC 0x6,4
+000149 c006      	RJMP _0xA5
+00014a 2400      	CLR  R0
+00014b 1405      	CP   R0,R5
+00014c 0406      	CPC  R0,R6
+00014d f411      	BRNE _0xA5
+00014e 9b4e      	SBIS 0x9,6
+00014f c001      	RJMP _0xA6
+                 _0xA5:
+000150 c004      	RJMP _0xA4
+                 _0xA6:
+                 ; 0000 00F5                             while(PINC.4 == 0){//Mientras esté intentando entrar activa martillo
+                 _0xA7:
+000151 9934      	SBIC 0x6,4
+000152 c002      	RJMP _0xA9
+                 ; 0000 00F6                                 PORTC.5 = 1; //Activa martillo
+000153 d0cd      	RCALL SUBOPT_0x1
+                 ; 0000 00F7                                 delay_ms (200);
+                 ; 0000 00F8                                 PORTC.5 = 0; //Desactiva martillo
+                 ; 0000 00F9                             }
+000154 cffc      	RJMP _0xA7
+                 _0xA9:
+                 ; 0000 00FA                    }
+                 ; 0000 00FB 
+                 ; 0000 00FC                    if(PINC.3 == 0)
+                 _0xA4:
+000155 9b33      	SBIS 0x6,3
+                 ; 0000 00FD                       prev  = 1;
+000156 d0e8      	RCALL SUBOPT_0x6
+                 ; 0000 00FE 
+                 ; 0000 00FF                    if(PINC.4 == 0)
+000157 9b34      	SBIS 0x6,4
+                 ; 0000 0100                       curre = 1;
+000158 d0ff      	RCALL SUBOPT_0x9
+                 ; 0000 0101 
+                 ; 0000 0102 
+                 ; 0000 0103                    if(prev == 1 && curre == 1 && PINC.2 == 0){
+000159 d103      	RCALL SUBOPT_0xA
+00015a f421      	BRNE _0xB1
+00015b d106      	RCALL SUBOPT_0xB
+00015c f411      	BRNE _0xB1
+00015d 9b32      	SBIS 0x6,2
+00015e c001      	RJMP _0xB2
+                 _0xB1:
+00015f c001      	RJMP _0xB0
+                 _0xB2:
+                 ; 0000 0104                       prev = 0;
+000160 d12c      	RCALL SUBOPT_0x11
+                 ; 0000 0105                       curre = 0;
+                 ; 0000 0106                   }
+                 ; 0000 0107               }
+                 _0xB0:
+000161 cfe2      	RJMP _0xA1
+                 _0xA3:
+                 ; 0000 0108 
+                 ; 0000 0109         }
+000162 cf43      	RJMP _0x3A
+                 _0x3C:
+                 ; 0000 010A 
+                 ; 0000 010B        while (PIND.4 == 1){ //PASO SENTIDO IZQUIERDO
+                 _0xB3:
+000163 9b4c      	SBIS 0x9,4
+000164 c0b3      	RJMP _0xB5
+                 ; 0000 010C          if (PINC.2 != 0){//Microswitch reposo //salio de reposo
+000165 9b32      	SBIS 0x6,2
+000166 c008      	RJMP _0xB6
+                 ; 0000 010D                         if(PIND.6 == 0){//Bloqueo de salida activado o también el de entrada
+000167 994e      	SBIC 0x9,6
+000168 c002      	RJMP _0xB7
+                 ; 0000 010E                               PORTC.5 = 1; //Activa martillo
+000169 d0b7      	RCALL SUBOPT_0x1
+                 ; 0000 010F                               delay_ms (200);
+                 ; 0000 0110                               PORTC.5 = 0; //Desactiva martillo
+                 ; 0000 0111                         }
+                 ; 0000 0112                         else{
+00016a c004      	RJMP _0xBC
+                 _0xB7:
+                 ; 0000 0113                                while(PINC.4 == 0){//Mientras esté intentando entrar activa martillo
+                 _0xBD:
+00016b 9934      	SBIC 0x6,4
+00016c c002      	RJMP _0xBF
+                 ; 0000 0114                                     PORTC.5 = 1; //Activa martillo
+00016d d0b3      	RCALL SUBOPT_0x1
+                 ; 0000 0115                                     delay_ms (200);
+                 ; 0000 0116                                     PORTC.5 = 0; //Desactiva martillo
+                 ; 0000 0117                                }
+00016e cffc      	RJMP _0xBD
+                 _0xBF:
+                 ; 0000 0118 
+                 ; 0000 0119                         }
+                 _0xBC:
+                 ; 0000 011A                     }
+                 ; 0000 011B                while(PIND.5 == 1 && PIND.4 == 1){//Pulso continuo no activo y Paso sentido izquierdo
+                 _0xB6:
+                 _0xC4:
+00016f 9b4d      	SBIS 0x9,5
+000170 c002      	RJMP _0xC7
+000171 994c      	SBIC 0x9,4
+000172 c001      	RJMP _0xC8
+                 _0xC7:
+000173 c085      	RJMP _0xC6
+                 _0xC8:
+                 ; 0000 011C                     if (PINC.2 != 0){//Microswitch reposo salio de reposo
+000174 9b32      	SBIS 0x6,2
+000175 c008      	RJMP _0xC9
+                 ; 0000 011D                         if(PIND.6 == 0){//Bloqueo de salida activado o también el de entrada
+000176 994e      	SBIC 0x9,6
+000177 c002      	RJMP _0xCA
+                 ; 0000 011E                               PORTC.5 = 1; //Activa martillo
+000178 d0a8      	RCALL SUBOPT_0x1
+                 ; 0000 011F                               delay_ms (200);
+                 ; 0000 0120                               PORTC.5 = 0; //Desactiva martillo
+                 ; 0000 0121                         }
+                 ; 0000 0122                         else{
+000179 c004      	RJMP _0xCF
+                 _0xCA:
+                 ; 0000 0123                                while(PINC.4 == 0){//Mientras esté intentando entrar activa martillo
+                 _0xD0:
+00017a 9934      	SBIC 0x6,4
+00017b c002      	RJMP _0xD2
+                 ; 0000 0124                                     PORTC.5 = 1; //Activa martillo
+00017c d0a4      	RCALL SUBOPT_0x1
+                 ; 0000 0125                                     delay_ms (200);
+                 ; 0000 0126                                     PORTC.5 = 0; //Desactiva martillo
+                 ; 0000 0127                                }
+00017d cffc      	RJMP _0xD0
+                 _0xD2:
+                 ; 0000 0128 
+                 ; 0000 0129                         }
+                 _0xCF:
+                 ; 0000 012A                     }
+                 ; 0000 012B                      if (PIND.7 == 0){//MODO MULTIPULSO
+                 _0xC9:
+00017e 994f      	SBIC 0x9,7
+00017f c04f      	RJMP _0xD7
+                 ; 0000 012C 
+                 ; 0000 012D                         if(PIND.2 == 1)
+000180 994a      	SBIC 0x9,2
+                 ; 0000 012E                            validation = 1;
+000181 d0a5      	RCALL SUBOPT_0x2
+                 ; 0000 012F                         if(PIND.2 == 0 && validation == 1){ // Señal de paso
+000182 994a      	SBIC 0x9,2
+000183 c002      	RJMP _0xDA
+000184 d0a7      	RCALL SUBOPT_0x3
+000185 f009      	BREQ _0xDB
+                 _0xDA:
+000186 c047      	RJMP _0xD9
+                 _0xDB:
+                 ; 0000 0130                            validation = 0;
+000187 d0a9      	RCALL SUBOPT_0x4
+                 ; 0000 0131                            numpasos++;
+                 ; 0000 0132                            contadorLED(numpasos);
+                 ; 0000 0133 
+                 ; 0000 0134 
+                 ; 0000 0135                           //DEFINICION DE RELOJ a 5s
+                 ; 0000 0136                            TCCR1B= 0x05; //Enciende timer 1 en modo normal con prescalador CK/1024
+000188 e0e5      	LDI  R30,LOW(5)
+000189 93e0 0081 	STS  129,R30
+                 ; 0000 0137 
+                 ; 0000 0138                            while(TIFR1.TOV1==0){ //Mientras la bandera de overflow no sea 1
+                 _0xDC:
+00018b 99b0      	SBIC 0x16,0
+00018c c014      	RJMP _0xDE
+                 ; 0000 0139                              if(PIND.2 == 1) // Señal de paso
+00018d 994a      	SBIC 0x9,2
+                 ; 0000 013A                                 validation = 1;
+00018e d098      	RCALL SUBOPT_0x2
+                 ; 0000 013B 
+                 ; 0000 013C                              if(numpasos == 5)
+00018f d0aa      	RCALL SUBOPT_0x5
+000190 f081      	BREQ _0xDE
+                 ; 0000 013D                                 break;
+                 ; 0000 013E 
+                 ; 0000 013F                              if(PINC.2 == 1 && PINC.4 == 0){
+000191 9b32      	SBIS 0x6,2
+000192 c002      	RJMP _0xE2
+000193 9b34      	SBIS 0x6,4
+000194 c001      	RJMP _0xE3
+                 _0xE2:
+000195 c002      	RJMP _0xE1
+                 _0xE3:
+                 ; 0000 0140                                 prev = 1;
+000196 d0a8      	RCALL SUBOPT_0x6
+                 ; 0000 0141                                 break;
+000197 c009      	RJMP _0xDE
+                 ; 0000 0142                              }
+                 ; 0000 0143 
+                 ; 0000 0144                              if(PIND.2 == 0 && validation == 1){ // Señal de paso
+                 _0xE1:
+000198 994a      	SBIC 0x9,2
+000199 c002      	RJMP _0xE5
+00019a d091      	RCALL SUBOPT_0x3
+00019b f009      	BREQ _0xE6
+                 _0xE5:
+00019c c003      	RJMP _0xE4
                  _0xE6:
-0001b1 994a      	SBIC 0x9,2
-0001b2 c01c      	RJMP _0xE8
-                 ; 0000 0176                     if(PINC.2 == 1 && PINC.3 == 0 && prev == 0 && PIND.6 == 0){ // Para evitar que haga sentido opuesto
-0001b3 9b32      	SBIS 0x6,2
-0001b4 c008      	RJMP _0xEA
-0001b5 9933      	SBIC 0x6,3
-0001b6 c006      	RJMP _0xEA
-0001b7 2400      	CLR  R0
-0001b8 1405      	CP   R0,R5
-0001b9 0406      	CPC  R0,R6
-0001ba f411      	BRNE _0xEA
-0001bb 9b4e      	SBIS 0x9,6
-0001bc c001      	RJMP _0xEB
+                 ; 0000 0145                                validation = 0;
+00019d d093      	RCALL SUBOPT_0x4
+                 ; 0000 0146                                numpasos++;
+                 ; 0000 0147                                contadorLED(numpasos);
+                 ; 0000 0148                                TIFR1.TOV1=1;//Resetea la bandera de overflow
+00019e 9ab0      	SBI  0x16,0
+                 ; 0000 0149                                TCNT1H= 0xEC; //Contador 65536 -60653  inicia en 60653 para contar 4883 veces , .001024 s ...
+00019f d07a      	RCALL SUBOPT_0x0
+                 ; 0000 014A                                TCNT1L= 0xED; //Se pone 60653 dividido en los 8MSB para TCNT1H y los 8LSB para TCNT1L
+                 ; 0000 014B                              }
+                 ; 0000 014C                            }
+                 _0xE4:
+0001a0 cfea      	RJMP _0xDC
+                 _0xDE:
+                 ; 0000 014D                            TCCR1B=0;       //Apagar timer
+0001a1 d0a2      	RCALL SUBOPT_0x7
+                 ; 0000 014E 
+                 ; 0000 014F                            pasosLED = numpasos;
+                 ; 0000 0150 
+                 ; 0000 0151                            for (i=0;i<numpasos;i++){
                  _0xEA:
-0001bd c004      	RJMP _0xE9
-                 _0xEB:
-                 ; 0000 0177                             while(PINC.3 == 0){//Mientras esté intentando entrar activa martillo
-                 _0xEC:
-0001be 9933      	SBIC 0x6,3
-0001bf c002      	RJMP _0xEE
-                 ; 0000 0178                                 PORTC.5 = 1; //Activa martillo
-0001c0 d018      	RCALL SUBOPT_0x1
-                 ; 0000 0179                                 delay_ms (200);
-                 ; 0000 017A                                 PORTC.5 = 0; //Desactiva martillo
-                 ; 0000 017B                             }
-0001c1 cffc      	RJMP _0xEC
+                +
+0001a2 14b3     +CP R11 , R3
+0001a3 04c4     +CPC R12 , R4
+                 	__CPWRR 11,12,3,4
+0001a4 f538      	BRSH _0xEB
+                 ; 0000 0152                                  TIFR1.TOV1=1;//Resetea la bandera de overflow
+0001a5 d0a8      	RCALL SUBOPT_0x8
+                 ; 0000 0153                                  TCCR1B= 0x05; //Enciende timer 1 en modo normal con prescalador CK/1024
+                 ; 0000 0154                                  TCNT1H= 0xD9; //Contador 65536 - 55769 inicia en 55769 para contar 9767 veces , .001024 ...
+                 ; 0000 0155                                  TCNT1L= 0xD9; //Se pone 55769 dividido en los 8MSB para TCNT1H y los 8LSB para TCNT1L
+                 ; 0000 0156                                 //TIENE 10 s para pasar
+                 ; 0000 0157                                 while(TIFR1.TOV1==0){//mientras la bandera de overflow no sea 1
                  _0xEE:
-                 ; 0000 017C                    }
-                 ; 0000 017D 
-                 ; 0000 017E                    if(PINC.4 == 0)
-                 _0xE9:
-0001c2 9b34      	SBIS 0x6,4
-                 ; 0000 017F                       prev  = 1;
-0001c3 d031      	RCALL SUBOPT_0x6
-                 ; 0000 0180 
-                 ; 0000 0181                    if(PINC.3 == 0)
-0001c4 9b33      	SBIS 0x6,3
-                 ; 0000 0182                       curre = 1;
-0001c5 d044      	RCALL SUBOPT_0x9
-                 ; 0000 0183 
-                 ; 0000 0184 
-                 ; 0000 0185                    if(prev == 1 && curre == 1 && PINC.2 == 0){
-0001c6 d048      	RCALL SUBOPT_0xA
-0001c7 f421      	BRNE _0xF6
-0001c8 d04b      	RCALL SUBOPT_0xB
-0001c9 f411      	BRNE _0xF6
-0001ca 9b32      	SBIS 0x6,2
-0001cb c001      	RJMP _0xF7
+0001a6 99b0      	SBIC 0x16,0
+0001a7 c01f      	RJMP _0xF0
+                 ; 0000 0158                                     if(PINC.2 == 1 && PINC.3 == 0 && prev == 0){ // Para evitar que haga sentido opuesto
+0001a8 9b32      	SBIS 0x6,2
+0001a9 c006      	RJMP _0xF2
+0001aa 9933      	SBIC 0x6,3
+0001ab c004      	RJMP _0xF2
+0001ac 2400      	CLR  R0
+0001ad 1405      	CP   R0,R5
+0001ae 0406      	CPC  R0,R6
+0001af f009      	BREQ _0xF3
+                 _0xF2:
+0001b0 c004      	RJMP _0xF1
+                 _0xF3:
+                 ; 0000 0159                                        while(PINC.3 == 0){//Mientras esté intentando entrar activa martillo
+                 _0xF4:
+0001b1 9933      	SBIC 0x6,3
+0001b2 c002      	RJMP _0xF6
+                 ; 0000 015A                                             PORTC.5 = 1; //Activa martillo
+0001b3 d06d      	RCALL SUBOPT_0x1
+                 ; 0000 015B                                             delay_ms (200);
+                 ; 0000 015C                                             PORTC.5 = 0; //Desactiva martillo
+                 ; 0000 015D                                        }
+0001b4 cffc      	RJMP _0xF4
                  _0xF6:
-0001cc c001      	RJMP _0xF5
-                 _0xF7:
-                 ; 0000 0186                       prev = 0;
-0001cd d066      	RCALL SUBOPT_0x10
-                 ; 0000 0187                       curre = 0;
-                 ; 0000 0188                   }
-                 ; 0000 0189               }
-                 _0xF5:
-0001ce cfe2      	RJMP _0xE6
-                 _0xE8:
-                 ; 0000 018A 
-                 ; 0000 018B         }
-0001cf cf53      	RJMP _0x7F
-                 _0x81:
-                 ; 0000 018C    }
-0001d0 cea5      	RJMP _0x3
-                 ; 0000 018D }
-                 _0xF8:
-0001d1 cfff      	RJMP _0xF8
+                 ; 0000 015E                                     }
+                 ; 0000 015F 
+                 ; 0000 0160                                     if(PINC.4 == 0)
+                 _0xF1:
+0001b5 9b34      	SBIS 0x6,4
+                 ; 0000 0161                                         prev  = 1;
+0001b6 d088      	RCALL SUBOPT_0x6
+                 ; 0000 0162 
+                 ; 0000 0163                                     if(PINC.3 == 0)
+0001b7 9b33      	SBIS 0x6,3
+                 ; 0000 0164                                         curre = 1;
+0001b8 d09f      	RCALL SUBOPT_0x9
+                 ; 0000 0165 
+                 ; 0000 0166                                     if(prev == 1 && curre == 1 && PINC.2 == 0){
+0001b9 d0a3      	RCALL SUBOPT_0xA
+0001ba f421      	BRNE _0xFE
+0001bb d0a6      	RCALL SUBOPT_0xB
+0001bc f411      	BRNE _0xFE
+0001bd 9b32      	SBIS 0x6,2
+0001be c001      	RJMP _0xFF
+                 _0xFE:
+0001bf c006      	RJMP _0xFD
+                 _0xFF:
+                 ; 0000 0167                                        entry=1;
+0001c0 d0a6      	RCALL SUBOPT_0xC
+                 ; 0000 0168                                        prev = 0;
+                 ; 0000 0169                                        curre = 0;
+                 ; 0000 016A                                        pasosLED = numpasos;
+                +
+0001c1 9230 0300+STS _pasosLED + ( 0 ) , R3
+0001c3 9240 0301+STS _pasosLED + ( 0 ) + 1 , R4
+                 	__PUTWMRN _pasosLED,0,3,4
+                 ; 0000 016B                                        break;
+0001c5 c001      	RJMP _0xF0
+                 ; 0000 016C                                     }
+                 ; 0000 016D                                 }
+                 _0xFD:
+0001c6 cfdf      	RJMP _0xEE
+                 _0xF0:
+                 ; 0000 016E 
+                 ; 0000 016F                                 if(entry == 0){ //Checa la bandera de si el usuario pasó
+0001c7 2c09      	MOV  R0,R9
+0001c8 280a      	OR   R0,R10
+0001c9 f011      	BREQ _0xEB
+                 ; 0000 0170                                     break;
+                 ; 0000 0171                                 }
+                 ; 0000 0172                            }
+0001ca d0a5      	RCALL SUBOPT_0xD
+0001cb cfd6      	RJMP _0xEA
+                 _0xEB:
+                 ; 0000 0173                            TCCR1B=0;       //Apagar timer
+0001cc d0a8      	RCALL SUBOPT_0xE
+                 ; 0000 0174                            numpasos=0;
+                 ; 0000 0175                            pasosLED = 0;
+0001cd d0ad      	RCALL SUBOPT_0xF
+                 ; 0000 0176                            contadorLED(numpasos);
+                 ; 0000 0177                          }
+                 ; 0000 0178                        }
+                 _0xD9:
+                 ; 0000 0179                     else{
+0001ce c029      	RJMP _0x101
+                 _0xD7:
+                 ; 0000 017A                          if(PIND.2 == 1)
+0001cf 994a      	SBIC 0x9,2
+                 ; 0000 017B                            validation = 1;
+0001d0 d056      	RCALL SUBOPT_0x2
+                 ; 0000 017C                          if(PIND.2 == 0 && validation == 1){ // Señal de paso
+0001d1 994a      	SBIC 0x9,2
+0001d2 c002      	RJMP _0x104
+0001d3 d058      	RCALL SUBOPT_0x3
+0001d4 f009      	BREQ _0x105
+                 _0x104:
+0001d5 c022      	RJMP _0x103
+                 _0x105:
+                 ; 0000 017D                            validation = 0;
+0001d6 d0ac      	RCALL SUBOPT_0x10
+                 ; 0000 017E                            numpasos = 1;
+                 ; 0000 017F                            contadorLED(numpasos);
+                 ; 0000 0180 
+                 ; 0000 0181                              TIFR1.TOV1=1;//Resetea la bandera de overflow
+                 ; 0000 0182                              TCCR1B= 0x05; //Enciende timer 1 en modo normal con prescalador CK/1024
+                 ; 0000 0183                              TCNT1H= 0xD9; //Contador 65536 - 55769 inicia en 55769 para contar 9767 veces , .001024 seg ...
+                 ; 0000 0184                              TCNT1L= 0xD9; //Se pone 55769 dividido en los 8MSB para TCNT1H y los 8LSB para TCNT1L
+                 ; 0000 0185                             //TIENE 10 s para pasar
+                 ; 0000 0186                              while(TIFR1.TOV1==0){//mientras la bandera de overflow no sea 1
+                 _0x108:
+0001d7 99b0      	SBIC 0x16,0
+0001d8 c01b      	RJMP _0x10A
+                 ; 0000 0187                                 if(PINC.2 == 1 && PINC.3 == 0 && prev == 0){ // Para evitar que haga sentido opuesto
+0001d9 9b32      	SBIS 0x6,2
+0001da c006      	RJMP _0x10C
+0001db 9933      	SBIC 0x6,3
+0001dc c004      	RJMP _0x10C
+0001dd 2400      	CLR  R0
+0001de 1405      	CP   R0,R5
+0001df 0406      	CPC  R0,R6
+0001e0 f009      	BREQ _0x10D
+                 _0x10C:
+0001e1 c004      	RJMP _0x10B
+                 _0x10D:
+                 ; 0000 0188                                    while(PINC.3 == 0){//Mientras esté intentando entrar activa martillo
+                 _0x10E:
+0001e2 9933      	SBIC 0x6,3
+0001e3 c002      	RJMP _0x110
+                 ; 0000 0189                                         PORTC.5 = 1; //Activa martillo
+0001e4 d03c      	RCALL SUBOPT_0x1
+                 ; 0000 018A                                         delay_ms (200);
+                 ; 0000 018B                                         PORTC.5 = 0; //Desactiva martillo
+                 ; 0000 018C                                    }
+0001e5 cffc      	RJMP _0x10E
+                 _0x110:
+                 ; 0000 018D                                 }
+                 ; 0000 018E 
+                 ; 0000 018F                                 if(PINC.4 == 0)
+                 _0x10B:
+0001e6 9b34      	SBIS 0x6,4
+                 ; 0000 0190                                     prev  = 1;
+0001e7 d057      	RCALL SUBOPT_0x6
+                 ; 0000 0191 
+                 ; 0000 0192                                 if(PINC.3 == 0)
+0001e8 9b33      	SBIS 0x6,3
+                 ; 0000 0193                                     curre = 1;
+0001e9 d06e      	RCALL SUBOPT_0x9
+                 ; 0000 0194 
+                 ; 0000 0195 
+                 ; 0000 0196                                 if(prev == 1 && curre == 1 && PINC.2 == 0){
+0001ea d072      	RCALL SUBOPT_0xA
+0001eb f421      	BRNE _0x118
+0001ec d075      	RCALL SUBOPT_0xB
+0001ed f411      	BRNE _0x118
+0001ee 9b32      	SBIS 0x6,2
+0001ef c001      	RJMP _0x119
+                 _0x118:
+0001f0 c002      	RJMP _0x117
+                 _0x119:
+                 ; 0000 0197                                    entry=1;
+0001f1 d075      	RCALL SUBOPT_0xC
+                 ; 0000 0198                                    prev = 0;
+                 ; 0000 0199                                    curre = 0;
+                 ; 0000 019A                                    break;
+0001f2 c001      	RJMP _0x10A
+                 ; 0000 019B                                 }
+                 ; 0000 019C                             }
+                 _0x117:
+0001f3 cfe3      	RJMP _0x108
+                 _0x10A:
+                 ; 0000 019D 
+                 ; 0000 019E                            TCCR1B=0;       //Apagar timer
+0001f4 d080      	RCALL SUBOPT_0xE
+                 ; 0000 019F                            numpasos=0;
+                 ; 0000 01A0                            contadorLED(numpasos);
+                +
+0001f5 2da3     +MOV R26 , R3
+0001f6 2db4     +MOV R27 , R4
+                 	__GETW2R 3,4
+0001f7 de75      	RCALL _contadorLED
+                 ; 0000 01A1                         }
+                 ; 0000 01A2                     }
+                 _0x103:
+                 _0x101:
+                 ; 0000 01A3 
+                 ; 0000 01A4                }
+0001f8 cf76      	RJMP _0xC4
+                 _0xC6:
+                 ; 0000 01A5               while (PIND.2==0){ //Mientras señal de pulso activada
+                 _0x11A:
+0001f9 994a      	SBIC 0x9,2
+0001fa c01c      	RJMP _0x11C
+                 ; 0000 01A6                     if(PINC.2 == 1 && PINC.3 == 0 && prev == 0 && PIND.6 == 0){ // Para evitar que haga sentido opuesto
+0001fb 9b32      	SBIS 0x6,2
+0001fc c008      	RJMP _0x11E
+0001fd 9933      	SBIC 0x6,3
+0001fe c006      	RJMP _0x11E
+0001ff 2400      	CLR  R0
+000200 1405      	CP   R0,R5
+000201 0406      	CPC  R0,R6
+000202 f411      	BRNE _0x11E
+000203 9b4e      	SBIS 0x9,6
+000204 c001      	RJMP _0x11F
+                 _0x11E:
+000205 c004      	RJMP _0x11D
+                 _0x11F:
+                 ; 0000 01A7                             while(PINC.3 == 0){//Mientras esté intentando entrar activa martillo
+                 _0x120:
+000206 9933      	SBIC 0x6,3
+000207 c002      	RJMP _0x122
+                 ; 0000 01A8                                 PORTC.5 = 1; //Activa martillo
+000208 d018      	RCALL SUBOPT_0x1
+                 ; 0000 01A9                                 delay_ms (200);
+                 ; 0000 01AA                                 PORTC.5 = 0; //Desactiva martillo
+                 ; 0000 01AB                             }
+000209 cffc      	RJMP _0x120
+                 _0x122:
+                 ; 0000 01AC                    }
+                 ; 0000 01AD 
+                 ; 0000 01AE                    if(PINC.4 == 0)
+                 _0x11D:
+00020a 9b34      	SBIS 0x6,4
+                 ; 0000 01AF                       prev  = 1;
+00020b d033      	RCALL SUBOPT_0x6
+                 ; 0000 01B0 
+                 ; 0000 01B1                    if(PINC.3 == 0)
+00020c 9b33      	SBIS 0x6,3
+                 ; 0000 01B2                       curre = 1;
+00020d d04a      	RCALL SUBOPT_0x9
+                 ; 0000 01B3 
+                 ; 0000 01B4 
+                 ; 0000 01B5                    if(prev == 1 && curre == 1 && PINC.2 == 0){
+00020e d04e      	RCALL SUBOPT_0xA
+00020f f421      	BRNE _0x12A
+000210 d051      	RCALL SUBOPT_0xB
+000211 f411      	BRNE _0x12A
+000212 9b32      	SBIS 0x6,2
+000213 c001      	RJMP _0x12B
+                 _0x12A:
+000214 c001      	RJMP _0x129
+                 _0x12B:
+                 ; 0000 01B6                       prev = 0;
+000215 d077      	RCALL SUBOPT_0x11
+                 ; 0000 01B7                       curre = 0;
+                 ; 0000 01B8                   }
+                 ; 0000 01B9               }
+                 _0x129:
+000216 cfe2      	RJMP _0x11A
+                 _0x11C:
+                 ; 0000 01BA 
+                 ; 0000 01BB         }
+000217 cf4b      	RJMP _0xB3
+                 _0xB5:
+                 ; 0000 01BC    }
+000218 ce8d      	RJMP _0x37
+                 ; 0000 01BD }
+                 _0x12C:
+000219 cfff      	RJMP _0x12C
                  ; .FEND
+                 
+                 	.DSEG
+                 _pasosLED:
+000300           	.BYTE 0x2
                  
                  	.CSEG
                  ;OPTIMIZER ADDED SUBROUTINE, CALLED 3 TIMES, CODE SIZE REDUCTION:8 WORDS
                  SUBOPT_0x0:
-0001d2 eeec      	LDI  R30,LOW(236)
-0001d3 93e0 0085 	STS  133,R30
-0001d5 eeed      	LDI  R30,LOW(237)
-0001d6 93e0 0084 	STS  132,R30
-0001d8 9508      	RET
+00021a eeec      	LDI  R30,LOW(236)
+00021b 93e0 0085 	STS  133,R30
+00021d eeed      	LDI  R30,LOW(237)
+00021e 93e0 0084 	STS  132,R30
+000220 9508      	RET
                  
                  ;OPTIMIZER ADDED SUBROUTINE, CALLED 14 TIMES, CODE SIZE REDUCTION:50 WORDS
                  SUBOPT_0x1:
-0001d9 9a45      	SBI  0x8,5
-0001da eca8      	LDI  R26,LOW(200)
-0001db e0b0      	LDI  R27,0
-0001dc d05c      	RCALL _delay_ms
-0001dd 9845      	CBI  0x8,5
-0001de 9508      	RET
+000221 9a45      	SBI  0x8,5
+000222 eca8      	LDI  R26,LOW(200)
+000223 e0b0      	LDI  R27,0
+000224 d06d      	RCALL _delay_ms
+000225 9845      	CBI  0x8,5
+000226 9508      	RET
                  
                  ;OPTIMIZER ADDED SUBROUTINE, CALLED 6 TIMES, CODE SIZE REDUCTION:13 WORDS
                  SUBOPT_0x2:
-0001df e0e1      	LDI  R30,LOW(1)
-0001e0 e0f0      	LDI  R31,HIGH(1)
+000227 e0e1      	LDI  R30,LOW(1)
+000228 e0f0      	LDI  R31,HIGH(1)
                 +
-0001e1 2ede     +MOV R13 , R30
-0001e2 2eef     +MOV R14 , R31
+000229 2ede     +MOV R13 , R30
+00022a 2eef     +MOV R14 , R31
                  	__PUTW1R 13,14
-0001e3 9508      	RET
+00022b 9508      	RET
                  
                  ;OPTIMIZER ADDED SUBROUTINE, CALLED 6 TIMES, CODE SIZE REDUCTION:13 WORDS
                  SUBOPT_0x3:
-0001e4 e0e1      	LDI  R30,LOW(1)
-0001e5 e0f0      	LDI  R31,HIGH(1)
-0001e6 15ed      	CP   R30,R13
-0001e7 05fe      	CPC  R31,R14
-0001e8 9508      	RET
+00022c e0e1      	LDI  R30,LOW(1)
+00022d e0f0      	LDI  R31,HIGH(1)
+00022e 15ed      	CP   R30,R13
+00022f 05fe      	CPC  R31,R14
+000230 9508      	RET
                  
-                 ;OPTIMIZER ADDED SUBROUTINE, CALLED 4 TIMES, CODE SIZE REDUCTION:13 WORDS
+                 ;OPTIMIZER ADDED SUBROUTINE, CALLED 4 TIMES, CODE SIZE REDUCTION:22 WORDS
                  SUBOPT_0x4:
-0001e9 24dd      	CLR  R13
-0001ea 24ee      	CLR  R14
-0001eb e0e1      	LDI  R30,LOW(1)
-0001ec e0f0      	LDI  R31,HIGH(1)
+000231 24dd      	CLR  R13
+000232 24ee      	CLR  R14
+000233 e0e1      	LDI  R30,LOW(1)
+000234 e0f0      	LDI  R31,HIGH(1)
                 +
-0001ed 0e3e     +ADD R3 , R30
-0001ee 1e4f     +ADC R4 , R31
+000235 0e3e     +ADD R3 , R30
+000236 1e4f     +ADC R4 , R31
                  	__ADDWRR 3,4,30,31
-0001ef 9508      	RET
+                +
+000237 2da3     +MOV R26 , R3
+000238 2db4     +MOV R27 , R4
+                 	__GETW2R 3,4
+000239 ce33      	RJMP _contadorLED
                  
                  ;OPTIMIZER ADDED SUBROUTINE, CALLED 2 TIMES, CODE SIZE REDUCTION:1 WORDS
                  SUBOPT_0x5:
-0001f0 e0e5      	LDI  R30,LOW(5)
-0001f1 e0f0      	LDI  R31,HIGH(5)
-0001f2 15e3      	CP   R30,R3
-0001f3 05f4      	CPC  R31,R4
-0001f4 9508      	RET
+00023a e0e5      	LDI  R30,LOW(5)
+00023b e0f0      	LDI  R31,HIGH(5)
+00023c 15e3      	CP   R30,R3
+00023d 05f4      	CPC  R31,R4
+00023e 9508      	RET
                  
                  ;OPTIMIZER ADDED SUBROUTINE, CALLED 8 TIMES, CODE SIZE REDUCTION:19 WORDS
                  SUBOPT_0x6:
-0001f5 e0e1      	LDI  R30,LOW(1)
-0001f6 e0f0      	LDI  R31,HIGH(1)
+00023f e0e1      	LDI  R30,LOW(1)
+000240 e0f0      	LDI  R31,HIGH(1)
                 +
-0001f7 2e5e     +MOV R5 , R30
-0001f8 2e6f     +MOV R6 , R31
+000241 2e5e     +MOV R5 , R30
+000242 2e6f     +MOV R6 , R31
                  	__PUTW1R 5,6
-0001f9 9508      	RET
+000243 9508      	RET
                  
-                 ;OPTIMIZER ADDED SUBROUTINE, CALLED 2 TIMES, CODE SIZE REDUCTION:2 WORDS
+                 ;OPTIMIZER ADDED SUBROUTINE, CALLED 2 TIMES, CODE SIZE REDUCTION:6 WORDS
                  SUBOPT_0x7:
-0001fa e0e0      	LDI  R30,LOW(0)
-0001fb 93e0 0081 	STS  129,R30
-0001fd 24bb      	CLR  R11
-0001fe 24cc      	CLR  R12
-0001ff 9508      	RET
+000244 e0e0      	LDI  R30,LOW(0)
+000245 93e0 0081 	STS  129,R30
+                +
+000247 9230 0300+STS _pasosLED + ( 0 ) , R3
+000249 9240 0301+STS _pasosLED + ( 0 ) + 1 , R4
+                 	__PUTWMRN _pasosLED,0,3,4
+00024b 24bb      	CLR  R11
+00024c 24cc      	CLR  R12
+00024d 9508      	RET
                  
                  ;OPTIMIZER ADDED SUBROUTINE, CALLED 4 TIMES, CODE SIZE REDUCTION:25 WORDS
                  SUBOPT_0x8:
-000200 9ab0      	SBI  0x16,0
-000201 e0e5      	LDI  R30,LOW(5)
-000202 93e0 0081 	STS  129,R30
-000204 ede9      	LDI  R30,LOW(217)
-000205 93e0 0085 	STS  133,R30
-000207 93e0 0084 	STS  132,R30
-000209 9508      	RET
+00024e 9ab0      	SBI  0x16,0
+00024f e0e5      	LDI  R30,LOW(5)
+000250 93e0 0081 	STS  129,R30
+000252 ede9      	LDI  R30,LOW(217)
+000253 93e0 0085 	STS  133,R30
+000255 93e0 0084 	STS  132,R30
+000257 9508      	RET
                  
                  ;OPTIMIZER ADDED SUBROUTINE, CALLED 6 TIMES, CODE SIZE REDUCTION:13 WORDS
                  SUBOPT_0x9:
-00020a e0e1      	LDI  R30,LOW(1)
-00020b e0f0      	LDI  R31,HIGH(1)
+000258 e0e1      	LDI  R30,LOW(1)
+000259 e0f0      	LDI  R31,HIGH(1)
                 +
-00020c 2e7e     +MOV R7 , R30
-00020d 2e8f     +MOV R8 , R31
+00025a 2e7e     +MOV R7 , R30
+00025b 2e8f     +MOV R8 , R31
                  	__PUTW1R 7,8
-00020e 9508      	RET
+00025c 9508      	RET
                  
                  ;OPTIMIZER ADDED SUBROUTINE, CALLED 6 TIMES, CODE SIZE REDUCTION:13 WORDS
                  SUBOPT_0xA:
-00020f e0e1      	LDI  R30,LOW(1)
-000210 e0f0      	LDI  R31,HIGH(1)
-000211 15e5      	CP   R30,R5
-000212 05f6      	CPC  R31,R6
-000213 9508      	RET
+00025d e0e1      	LDI  R30,LOW(1)
+00025e e0f0      	LDI  R31,HIGH(1)
+00025f 15e5      	CP   R30,R5
+000260 05f6      	CPC  R31,R6
+000261 9508      	RET
                  
                  ;OPTIMIZER ADDED SUBROUTINE, CALLED 6 TIMES, CODE SIZE REDUCTION:13 WORDS
                  SUBOPT_0xB:
-000214 e0e1      	LDI  R30,LOW(1)
-000215 e0f0      	LDI  R31,HIGH(1)
-000216 15e7      	CP   R30,R7
-000217 05f8      	CPC  R31,R8
-000218 9508      	RET
+000262 e0e1      	LDI  R30,LOW(1)
+000263 e0f0      	LDI  R31,HIGH(1)
+000264 15e7      	CP   R30,R7
+000265 05f8      	CPC  R31,R8
+000266 9508      	RET
                  
                  ;OPTIMIZER ADDED SUBROUTINE, CALLED 4 TIMES, CODE SIZE REDUCTION:19 WORDS
                  SUBOPT_0xC:
-000219 e0e1      	LDI  R30,LOW(1)
-00021a e0f0      	LDI  R31,HIGH(1)
+000267 e0e1      	LDI  R30,LOW(1)
+000268 e0f0      	LDI  R31,HIGH(1)
                 +
-00021b 2e9e     +MOV R9 , R30
-00021c 2eaf     +MOV R10 , R31
+000269 2e9e     +MOV R9 , R30
+00026a 2eaf     +MOV R10 , R31
                  	__PUTW1R 9,10
-00021d 2455      	CLR  R5
-00021e 2466      	CLR  R6
-00021f 2477      	CLR  R7
-000220 2488      	CLR  R8
-000221 9508      	RET
+00026b 2455      	CLR  R5
+00026c 2466      	CLR  R6
+00026d 2477      	CLR  R7
+00026e 2488      	CLR  R8
+00026f 9508      	RET
                  
                  ;OPTIMIZER ADDED SUBROUTINE, CALLED 2 TIMES, CODE SIZE REDUCTION:1 WORDS
                  SUBOPT_0xD:
-000222 e0e1      	LDI  R30,LOW(1)
-000223 e0f0      	LDI  R31,HIGH(1)
+000270 e0e1      	LDI  R30,LOW(1)
+000271 e0f0      	LDI  R31,HIGH(1)
                 +
-000224 0ebe     +ADD R11 , R30
-000225 1ecf     +ADC R12 , R31
+000272 0ebe     +ADD R11 , R30
+000273 1ecf     +ADC R12 , R31
                  	__ADDWRR 11,12,30,31
-000226 9508      	RET
+000274 9508      	RET
                  
                  ;OPTIMIZER ADDED SUBROUTINE, CALLED 4 TIMES, CODE SIZE REDUCTION:10 WORDS
                  SUBOPT_0xE:
-000227 e0e0      	LDI  R30,LOW(0)
-000228 93e0 0081 	STS  129,R30
-00022a 2433      	CLR  R3
-00022b 2444      	CLR  R4
-00022c 9508      	RET
+000275 e0e0      	LDI  R30,LOW(0)
+000276 93e0 0081 	STS  129,R30
+000278 2433      	CLR  R3
+000279 2444      	CLR  R4
+00027a 9508      	RET
                  
-                 ;OPTIMIZER ADDED SUBROUTINE, CALLED 2 TIMES, CODE SIZE REDUCTION:4 WORDS
+                 ;OPTIMIZER ADDED SUBROUTINE, CALLED 2 TIMES, CODE SIZE REDUCTION:5 WORDS
                  SUBOPT_0xF:
-00022d 24dd      	CLR  R13
-00022e 24ee      	CLR  R14
-00022f e0e1      	LDI  R30,LOW(1)
-000230 e0f0      	LDI  R31,HIGH(1)
+00027b e0e0      	LDI  R30,LOW(0)
+00027c 93e0 0300 	STS  _pasosLED,R30
+00027e 93e0 0301 	STS  _pasosLED+1,R30
                 +
-000231 2e3e     +MOV R3 , R30
-000232 2e4f     +MOV R4 , R31
+000280 2da3     +MOV R26 , R3
+000281 2db4     +MOV R27 , R4
+                 	__GETW2R 3,4
+000282 cdea      	RJMP _contadorLED
+                 
+                 ;OPTIMIZER ADDED SUBROUTINE, CALLED 2 TIMES, CODE SIZE REDUCTION:7 WORDS
+                 SUBOPT_0x10:
+000283 24dd      	CLR  R13
+000284 24ee      	CLR  R14
+000285 e0e1      	LDI  R30,LOW(1)
+000286 e0f0      	LDI  R31,HIGH(1)
+                +
+000287 2e3e     +MOV R3 , R30
+000288 2e4f     +MOV R4 , R31
                  	__PUTW1R 3,4
-000233 cfcc      	RJMP SUBOPT_0x8
+                +
+000289 2da3     +MOV R26 , R3
+00028a 2db4     +MOV R27 , R4
+                 	__GETW2R 3,4
+00028b dde1      	RCALL _contadorLED
+00028c cfc1      	RJMP SUBOPT_0x8
                  
                  ;OPTIMIZER ADDED SUBROUTINE, CALLED 2 TIMES, CODE SIZE REDUCTION:1 WORDS
-                 SUBOPT_0x10:
-000234 2455      	CLR  R5
-000235 2466      	CLR  R6
-000236 2477      	CLR  R7
-000237 2488      	CLR  R8
-000238 9508      	RET
+                 SUBOPT_0x11:
+00028d 2455      	CLR  R5
+00028e 2466      	CLR  R6
+00028f 2477      	CLR  R7
+000290 2488      	CLR  R8
+000291 9508      	RET
                  
                  ;RUNTIME LIBRARY
                  
                  	.CSEG
                  _delay_ms:
-000239 9610      	adiw r26,0
-00023a f039      	breq __delay_ms1
+000292 9610      	adiw r26,0
+000293 f039      	breq __delay_ms1
                  __delay_ms0:
-00023b 95a8      	wdr
+000294 95a8      	wdr
                 +
-00023c ed80     +LDI R24 , LOW ( 0x7D0 )
-00023d e097     +LDI R25 , HIGH ( 0x7D0 )
+000295 ed80     +LDI R24 , LOW ( 0x7D0 )
+000296 e097     +LDI R25 , HIGH ( 0x7D0 )
                 +__DELAY_USW_LOOP :
-00023e 9701     +SBIW R24 , 1
-00023f f7f1     +BRNE __DELAY_USW_LOOP
+000297 9701     +SBIW R24 , 1
+000298 f7f1     +BRNE __DELAY_USW_LOOP
                  	__DELAY_USW 0x7D0
-000240 9711      	sbiw r26,1
-000241 f7c9      	brne __delay_ms0
+000299 9711      	sbiw r26,1
+00029a f7c9      	brne __delay_ms0
                  __delay_ms1:
-000242 9508      	ret
+00029b 9508      	ret
                  
                  ;END OF CODE MARKER
                  __END_OF_CODE:
@@ -2348,41 +2512,41 @@ counted separately from r26..r31 here.
 .dseg memory usage only counts static data declared with .byte
 
 ATmega328P register use summary:
-r0 :  26 r1 :   1 r2 :   0 r3 :   6 r4 :   6 r5 :  10 r6 :  10 r7 :   4 
+r0 :  26 r1 :   1 r2 :   0 r3 :  13 r4 :  13 r5 :  10 r6 :  10 r7 :   4 
 r8 :   4 r9 :   3 r10:   3 r11:   4 r12:   4 r13:   4 r14:   4 r15:   0 
 r16:   0 r17:   0 r18:   0 r19:   0 r20:   0 r21:   0 r22:   2 r23:   0 
-r24:   9 r25:   3 r26:   6 r27:   4 r28:   1 r29:   1 r30:  62 r31:  25 
-x  :   3 y  :   0 z  :   7 
-Registers used: 25 out of 35 (71.4%)
+r24:   9 r25:   3 r26:  24 r27:  12 r28:   2 r29:   1 r30:  75 r31:  33 
+x  :   7 y  :   4 z  :   7 
+Registers used: 26 out of 35 (74.3%)
 
 ATmega328P instruction use summary:
 .lds  :   0 .lds.l:   0 .sts  :   0 .sts.l:   0 adc   :   2 add   :   2 
-adiw  :   1 and   :   0 andi  :   0 asr   :   0 bclr  :   0 bld   :   0 
-brbc  :   0 brbs  :   0 brcc  :   0 brcs  :   0 break :   0 breq  :  16 
+adiw  :   2 and   :   0 andi  :   0 asr   :   0 bclr  :   0 bld   :   0 
+brbc  :   0 brbs  :   0 brcc  :   0 brcs  :   0 break :   0 breq  :  17 
 brge  :   0 brhc  :   0 brhs  :   0 brid  :   0 brie  :   0 brlo  :   0 
-brlt  :   0 brmi  :   0 brne  :  19 brpl  :   0 brsh  :   2 brtc  :   0 
+brlt  :   0 brmi  :   0 brne  :  24 brpl  :   0 brsh  :   2 brtc  :   0 
 brts  :   0 brvc  :   0 brvs  :   0 bset  :   0 bst   :   0 call  :   0 
-cbi   :   1 cbr   :   0 clc   :   0 clh   :   0 cli   :   1 cln   :   0 
+cbi   :   9 cbr   :   0 clc   :   0 clh   :   0 cli   :   1 cln   :   0 
 clr   :  24 cls   :   0 clt   :   0 clv   :   0 clz   :   0 com   :   0 
-cp    :  12 cpc   :  12 cpi   :   0 cpse  :   0 dec   :   1 des   :   0 
+cp    :  12 cpc   :  17 cpi   :   5 cpse  :   0 dec   :   1 des   :   0 
 eor   :   0 fmul  :   0 fmuls :   0 fmulsu:   0 icall :   0 ijmp  :   0 
-in    :   0 inc   :   0 jmp   :  27 ld    :   0 ldd   :   0 ldi   :  52 
-lds   :   0 lpm   :   7 lsl   :   0 lsr   :   0 mov   :  12 movw  :   3 
+in    :   0 inc   :   0 jmp   :  27 ld    :   3 ldd   :   1 ldi   :  60 
+lds   :   2 lpm   :   7 lsl   :   0 lsr   :   0 mov   :  22 movw  :   3 
 mul   :   0 muls  :   0 mulsu :   0 neg   :   0 nop   :   0 or    :   2 
-ori   :   0 out   :  10 pop   :   0 push  :   0 rcall :  80 ret   :  17 
-reti  :   0 rjmp  : 126 rol   :   0 ror   :   0 sbc   :   0 sbci  :   0 
-sbi   :   4 sbic  :  44 sbis  :  38 sbiw  :   5 sbr   :   0 sbrc  :   0 
+ori   :   0 out   :  10 pop   :   0 push  :   0 rcall :  86 ret   :  17 
+reti  :   0 rjmp  : 133 rol   :   0 ror   :   0 sbc   :   0 sbci  :   0 
+sbi   :  11 sbic  :  44 sbis  :  38 sbiw  :   7 sbr   :   0 sbrc  :   0 
 sbrs  :   0 sec   :   0 seh   :   0 sei   :   0 sen   :   0 ser   :   0 
 ses   :   0 set   :   0 sev   :   0 sez   :   0 sleep :   0 spm   :   0 
-st    :   3 std   :   0 sts   :   9 sub   :   0 subi  :   0 swap  :   0 
+st    :   7 std   :   0 sts   :  15 sub   :   0 subi  :   0 swap  :   0 
 tst   :   0 wdr   :   1 
-Instructions used: 29 out of 116 (25.0%)
+Instructions used: 33 out of 116 (28.4%)
 
 ATmega328P memory use summary [bytes]:
 Segment   Begin    End      Code   Data   Used    Size   Use%
 ---------------------------------------------------------------
-[.cseg] 0x000000 0x000486   1138     20   1158   32768   3.5%
-[.dseg] 0x000100 0x000300      0      0      0    2048   0.0%
+[.cseg] 0x000000 0x000538   1316     20   1336   32768   4.1%
+[.dseg] 0x000100 0x000302      0      2      2    2048   0.1%
 [.eseg] 0x000000 0x000000      0      0      0    1024   0.0%
 
 Assembly complete, 0 errors, 12 warnings

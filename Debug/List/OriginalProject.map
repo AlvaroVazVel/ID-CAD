@@ -1,6 +1,7 @@
 RAM Allocation [bytes]
 Variable                                                                          Address   Size
 ------------------------------------------------------------------------------------------------
+pasosLED                                                                          0x0300       2
 
 EEPROM Allocation [bytes]
 Variable                                                                          Address   Size
@@ -19,4 +20,5 @@ validation                                                                      
 FLASH Allocation [words]
 Function                                                                          Address   Size
 ------------------------------------------------------------------------------------------------
-main                                                                              0x0006D    357
+contadorLED                                                                       0x0006D     48
+main                                                                              0x0009D    381
